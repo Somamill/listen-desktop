@@ -1,6 +1,6 @@
 # App Store release candidate
 
-Version 1.0.0 (4), iPhone/iPad and universal Intel/Apple Silicon Mac Catalyst. Updated 14 November 2026.
+Version 1.0.0 (4), iPhone/iPad and universal Intel/Apple Silicon Mac Catalyst. Updated 15 November 2026.
 
 ## Completed
 
@@ -16,14 +16,16 @@ Version 1.0.0 (4), iPhone/iPad and universal Intel/Apple Silicon Mac Catalyst. U
 
 ## Submission status
 
-Both versions were submitted successfully and are **WAITING FOR REVIEW**, with **AFTER_APPROVAL** automatic release enabled.
+Both versions were submitted with **AFTER_APPROVAL** automatic release enabled. Apple requested more information for iOS under Guideline 2.1; the Mac version remains in its review queue.
 
 | Edition | Version/build | Apple status |
 | --- | --- | --- |
-| iPhone & iPad | 1.0.0 (4) | Waiting for Review |
+| iPhone & iPad | 1.0.0 (4) | Rejected — information and physical-device recording requested |
 | Mac Catalyst, Intel & Apple Silicon | 1.0.0 (4) | Waiting for Review |
 
 Neither edition is approved or publicly available yet. Apple may request changes. No further signing password prompt is required by the prepared local update pipeline. Temporary Safari automation is disabled and the dedicated signing keychain is locked.
+
+The [native support page](SUPPORT.md), [review guide](review/README.md), original spoken sample ZIP and fictional shelf CSV are published. The sample ZIP passes archive integrity checks, contains two playable MP3 chapters with source text and a license, and its public download matches the local file. The iOS support link now points to the native player instructions. Physical-device QA and the requested recording are still pending; preparing these assets does not resolve the rejection or constitute resubmission.
 
 Source PR #6 is merged. All hosted native, Python, dependency-audit and brand checks pass: https://github.com/Somamill/listen/actions/runs/43529108895.
 
