@@ -8,7 +8,7 @@ listen. plays your own DRM-free audiobooks. Import a file, folder or ZIP, then k
 
 [Download the original two-chapter sample ZIP](https://raw.githubusercontent.com/Somamill/listen/main/app-store/review/samples/listen-review-sample.zip). It contains original synthetic spoken tutorials, not an excerpt from a commercial audiobook.
 
-1. Open **Library → + → Download from HTTPS**.
+1. Open **Library → + → Download a file**.
 2. Paste the sample ZIP link and select **Download**. Alternatively, save the ZIP in Files and use **Import audio files**.
 3. Open the imported book and select **Start listening**. Tap the player to change speed, seek, add a bookmark or set a sleep timer.
 4. Open the book's details to edit its title and author or create an M4B. Conversion creates AAC audio and keeps the imported originals.

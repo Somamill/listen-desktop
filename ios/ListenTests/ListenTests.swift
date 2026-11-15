@@ -14,6 +14,14 @@ import XCTest
     try? FileManager.default.removeItem(at: root)
     super.tearDown()
   }
+  func testSpokenAudioSessionUsesValidPlaybackOptions() throws {
+    try AudioController.configureSessionCategory()
+    let session = AVAudioSession.sharedInstance()
+    XCTAssertEqual(session.category, .playback)
+    XCTAssertEqual(session.mode, .spokenAudio)
+    XCTAssertFalse(session.categoryOptions.contains(.allowAirPlay))
+    XCTAssertFalse(session.categoryOptions.contains(.allowBluetoothA2DP))
+  }
   func testProgressConflictResolutionAndTrackBoundaries() {
     var book = AudioBook(
       title: "Test",

@@ -197,11 +197,13 @@ import UIKit
     persist()
     nowPlaying()
   }
+  nonisolated static func configureSessionCategory() throws {
+    // Playback already supports AirPlay and Bluetooth A2DP. Explicitly enabling
+    // their play-and-record options causes a parameter error on physical devices.
+    try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
+  }
   nonisolated static func activateSession() async throws {
-    try await Task.detached {
-      try AVAudioSession.sharedInstance().setCategory(
-        .playback, mode: .spokenAudio, options: [.allowAirPlay, .allowBluetoothA2DP])
-    }.value
+    try await Task.detached { try configureSessionCategory() }.value
     #if compiler(>=6.4)
       if #available(iOS 27.0, macCatalyst 27.0, *) {
         try await withCheckedThrowingContinuation {
