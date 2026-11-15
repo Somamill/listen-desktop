@@ -203,6 +203,11 @@ import UIKit
     try AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
   }
   nonisolated static func activateSession() async throws {
+    #if targetEnvironment(macCatalyst)
+      // macOS routes AVPlayer through Core Audio. The iOS audio-session
+      // activation API can report "not yet implemented" on Catalyst.
+      return
+    #else
     try await Task.detached { try configureSessionCategory() }.value
     #if compiler(>=6.4)
       if #available(iOS 27.0, macCatalyst 27.0, *) {
@@ -224,6 +229,7 @@ import UIKit
       }
     #else
       try await Task.detached { try AVAudioSession.sharedInstance().setActive(true) }.value
+    #endif
     #endif
   }
   func resume() {

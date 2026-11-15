@@ -30,7 +30,8 @@ import ZIPFoundation
         let probe = GoodreadsPrivacyPageProbe { loaded.fulfill() }
         let web = WKWebView(frame: .zero, configuration: config); web.navigationDelegate = probe
         web.loadHTMLString("<p id='check'>native extraction</p><script>document.getElementById('check').textContent='website script ran'</script>", baseURL: URL(string: "https://www.goodreads.com/review/list/123"))
-        await fulfillment(of: [loaded], timeout: 15)
+        // A cold WebKit process on hosted runners can take longer than local launches.
+        await fulfillment(of: [loaded], timeout: 45)
         let text = try await web.evaluateJavaScript("document.getElementById('check').textContent") as? String
         XCTAssertEqual(text, "native extraction")
     }
