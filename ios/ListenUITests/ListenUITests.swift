@@ -24,6 +24,23 @@ final class ListenUITests:XCTestCase {
         XCTAssertTrue(app.buttons["startListening"].waitForExistence(timeout:10))
         let attachment=XCTAttachment(screenshot:app.screenshot());attachment.name="Player flow";attachment.lifetime = .keepAlways;add(attachment)
     }
+    func testTabsRemainAccessibleAfterPlaybackStarts() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting"]; app.launch()
+        let book = app.cells.containing(.staticText, identifier: "Sample recording").firstMatch
+        XCTAssertTrue(book.waitForExistence(timeout: 30)); book.tap()
+        app.buttons["startListening"].tap()
+        XCTAssertTrue(app.buttons["closePlayer"].waitForExistence(timeout: 15))
+        app.buttons["closePlayer"].tap()
+        for name in ["Goodreads", "Servers", "Settings", "Library"] {
+            let tab = app.buttons[name].firstMatch
+            XCTAssertTrue(tab.waitForExistence(timeout: 10), name)
+            XCTAssertTrue(tab.isHittable, name)
+            tab.tap()
+        }
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "Mini-player and accessible navigation"
+        shot.lifetime = .keepAlways; add(shot)
+    }
     func testSettings() throws {
         let app=XCUIApplication();app.launchArguments=["--uitesting"];app.launch()
         app.buttons["Settings"].firstMatch.tap()

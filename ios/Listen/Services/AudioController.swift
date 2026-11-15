@@ -261,6 +261,9 @@ import UIKit
     if abs(value - position) > 1 { recovery("skip", at: position) }
     guard let book else { return }
     let value = max(0, min(value, book.duration))
+    if book.state.finished && value < book.duration {
+      store.position(book.id, seconds: value, finished: false)
+    }
     let track = book.trackPosition(at: value)
     if track.index != index {
       loadTrack(at: value, autoplay: playing)

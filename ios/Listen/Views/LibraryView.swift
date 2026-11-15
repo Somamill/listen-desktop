@@ -6,52 +6,80 @@ struct RootView: View {
   @EnvironmentObject var player: AudioController
   @State private var showPlayer = false
   var body: some View {
+    playerTabs
+      .onReceive(NotificationCenter.default.publisher(for: Notification.Name("listen.show-player")))
+    {
+      _ in showPlayer = true
+    }
+      .sheet(isPresented: $showPlayer) {
+        NavigationStack { PlayerView(onDone: { showPlayer = false }) }
+      }
+      .alert(
+        "Something needs attention",
+        isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })
+      ) {
+        Button("OK") { store.error = nil }
+      } message: {
+        Text(store.error ?? "")
+      }
+  }
+  @ViewBuilder private var playerTabs: some View {
+    #if compiler(>=6.2) && !targetEnvironment(macCatalyst)
+      if #available(iOS 26.0, *) {
+        tabs.tabViewBottomAccessory { miniPlayer }
+      } else {
+        legacyTabs
+      }
+    #else
+      legacyTabs
+    #endif
+  }
+  private var tabs: some View {
     TabView {
       LibraryView().tabItem { Label("Library", systemImage: "books.vertical") }
       GoodreadsView().tabItem { Label("Goodreads", systemImage: "book.closed") }
       MediaServersView().tabItem { Label("Servers", systemImage: "externaldrive") }
       SettingsView().tabItem { Label("Settings", systemImage: "gearshape") }
     }
-    .safeAreaInset(edge: .bottom, spacing: 0) {
-      if let book = player.book {
-        HStack(spacing: 12) {
-          Button {
-            showPlayer = true
-          } label: {
-            HStack {
-              BookArtwork(book: book, root: store.root).frame(width: 44, height: 52)
-              VStack(alignment: .leading) {
-                Text(book.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text(book.author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-              }
-              Spacer()
-            }.contentShape(Rectangle())
-          }.buttonStyle(.plain).accessibilityLabel("Open player for \(book.title)")
-          Button {
-            player.toggle()
-          } label: {
-            Image(systemName: player.playing ? "pause.fill" : "play.fill").frame(
-              width: 44, height: 44)
-          }.accessibilityLabel(player.playing ? "Pause" : "Play").accessibilityIdentifier(
-            "miniPlayPause")
-        }.padding(.horizontal).padding(.vertical, 8).background(.regularMaterial)
-      }
-    }
-    .onReceive(NotificationCenter.default.publisher(for: Notification.Name("listen.show-player"))) {
-      _ in showPlayer = true
-    }
-    .sheet(isPresented: $showPlayer) {
-      NavigationStack { PlayerView(onDone: { showPlayer = false }) }
-    }
-    .alert(
-      "Something needs attention",
-      isPresented: Binding(get: { store.error != nil }, set: { if !$0 { store.error = nil } })
-    ) {
-      Button("OK") { store.error = nil }
-    } message: {
-      Text(store.error ?? "")
+  }
+  private var legacyTabs: some View {
+    TabView {
+      LibraryView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+        .tabItem { Label("Library", systemImage: "books.vertical") }
+      GoodreadsView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+        .tabItem { Label("Goodreads", systemImage: "book.closed") }
+      MediaServersView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+        .tabItem { Label("Servers", systemImage: "externaldrive") }
+      SettingsView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+        .tabItem { Label("Settings", systemImage: "gearshape") }
     }
   }
+  @ViewBuilder private var miniPlayer: some View {
+    if let book = player.book {
+      HStack(spacing: 12) {
+        Button {
+          showPlayer = true
+        } label: {
+          HStack {
+            BookArtwork(book: book, root: store.root).frame(width: 44, height: 52)
+            VStack(alignment: .leading) {
+              Text(book.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+              Text(book.author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer()
+          }.contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityLabel("Open player for \(book.title)")
+        Button {
+          player.toggle()
+        } label: {
+          Image(systemName: player.playing ? "pause.fill" : "play.fill").frame(
+            width: 44, height: 44)
+        }.accessibilityLabel(player.playing ? "Pause" : "Play").accessibilityIdentifier(
+          "miniPlayPause")
+      }.padding(.horizontal).padding(.vertical, 8).background(.regularMaterial)
+    }
+  }
+
 }
 
 struct LibraryView: View {

@@ -1,6 +1,6 @@
-# listen. Audiobook Player
+# listen.
 
-Support for the native iPhone, iPad and Mac App Store edition.
+Support for the native iPhone, iPad and Mac App Store edition, listed as **sovo.** The app itself is named **listen.**.
 
 listen. plays your own DRM-free audiobooks. Import a file, folder or ZIP, then keep your place with chapters, bookmarks, playback speed and a sleep timer. There is no listen. account, subscription, in-app purchase or supplied audiobook catalogue. The separately distributed desktop catalogue in this repository is not included in the App Store app.
 

@@ -79,7 +79,10 @@ import XCTest
   }
   func sample() throws -> URL {
     let url = try XCTUnwrap(Bundle.main.url(forResource: "Sample", withExtension: "mp3"))
-    guard try Data(contentsOf: url).count > 90_000 else { throw ListenError.message("The packaged sample audio is missing or empty. Hydrate source resources and rebuild.") }
+    guard try Data(contentsOf: url).count > 90_000 else {
+      throw ListenError.message(
+        "The packaged sample audio is missing or empty. Hydrate source resources and rebuild.")
+    }
     return url
   }
   func testImportAndRealAACConversionRetainSourcesAndChapters() async throws {
@@ -138,6 +141,21 @@ import XCTest
     XCTAssertNil(store.error)
   }
 
+  func testSeekingInFinishedBookReturnsItToListening() async throws {
+    let store = LibraryStore(root: root.appendingPathComponent("replay"))
+    await store.importFiles([try sample()], enrich: false)
+    let imported = try XCTUnwrap(store.books.first)
+    store.position(imported.id, seconds: imported.duration, finished: true)
+    let cloud = CloudLibrary(store: store)
+    cloud.enabled = false
+    let player = AudioController(store: store, cloud: cloud)
+    await player.open(try XCTUnwrap(store.books.first), autoplay: false)
+    XCTAssertTrue(try XCTUnwrap(store.books.first).state.finished)
+    player.seek(3)
+    XCTAssertFalse(try XCTUnwrap(store.books.first).state.finished)
+    XCTAssertEqual(try XCTUnwrap(store.books.first).state.position, 3, accuracy: 0.1)
+    player.pause()
+  }
   func testLibraryPersistenceAndPlayback() async throws {
     let store = LibraryStore(root: root.appendingPathComponent("library"))
     await store.importFiles([try sample()], enrich: false)

@@ -1,6 +1,6 @@
 # App Review guide
 
-This guide describes the native `ios/` App Store app, **listen. Audiobook Player**, version 1.0.0. It is a personal DRM-free audiobook player for iPhone, iPad and Mac Catalyst. The repository also contains a separate desktop catalogue, which is not shipped in the Store app. No torrent client, proxy configuration or audiobook catalogue is part of this native build.
+This guide describes the native `ios/` App Store app, **listen.**, version 1.0.0, listed in the App Store as **sovo.**. It is a personal DRM-free audiobook player for iPhone, iPad and Mac Catalyst. The repository also contains a separate desktop catalogue, which is not shipped in the Store app. No torrent client, proxy configuration or audiobook catalogue is part of this native build.
 
 ## Purpose and audience
 
