@@ -1,6 +1,6 @@
 # listen. for iPhone & iPad
 
-A native SwiftUI audiobook player in listen.’s sage/forest identity. **This is a developer preview, not an App Store or TestFlight release and not complete BookPlayer feature parity.** No torrent code, catalog, or downloading from torrent sources is included. The macOS app remains separate.
+A native SwiftUI audiobook player in listen.’s sage/forest identity. The iOS edition is available on the App Store as **sovo.**, version 1.0.0; the installed app remains named **listen.** The Mac Catalyst edition is awaiting review. See [release status](../app-store/RELEASE-STATUS.md) for tested builds and limitations. No torrent code, catalog, or downloading from torrent sources is included. The separate desktop catalogue is not part of this Store app.
 
 ## Build and run
 
@@ -62,7 +62,7 @@ Goodreads can expire sessions, block embedded third-party sign-in, or change its
 | Share extension, widget, Siri shortcut | Implemented; signed App Group and hardware verification required |
 | CarPlay | Optional adapter/configuration; entitlement approval and validation required |
 | Apple Watch and alternative icons | Not included |
-| App Store signing, provisioning, privacy submission and TestFlight | Not completed |
+| App Store signing, provisioning, privacy submission and TestFlight | Completed; iOS 1.0.0 approved, Mac Catalyst review pending |
 
 ## Before distribution
 

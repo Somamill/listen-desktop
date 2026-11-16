@@ -4,12 +4,14 @@ Updated 16 November 2026. Store listing: **sovo.**; installed app and in-app nam
 
 | Edition | Version/build | Apple status |
 | --- | --- | --- |
-| iPhone & iPad | 1.0.0 (6) | Waiting for Review |
+| iPhone & iPad | 1.0.0 (6) | Approved — Ready for Sale |
 | Mac Catalyst, Intel & Apple Silicon | 1.0.0 (7) | Waiting for Review |
 
 Both editions were submitted with automatic release after approval. The iOS Guideline 2.1 item was resolved and its existing review submission resubmitted; the Mac build 4 review was replaced with tested build 7.
 
-Neither edition is approved or publicly available yet. Automatic release is configured for after Apple approval.
+The iOS edition is approved and publicly listed as [sovo.](https://apps.apple.com/app/id6834434329). Apple's live App Store Connect state is `READY_FOR_SALE`; public lookup confirmed version 1.0.0 in the US, Japan and Germany on 16 November 2026. The earlier Guideline 2.1 submission is `COMPLETE`, with the physical-iPhone review attachment delivered successfully and all six requested answers in App Review notes. No further iOS resubmission is needed for that notice.
+
+The Mac edition remains `WAITING_FOR_REVIEW`, with automatic release configured after approval. Approval of iOS does not imply Mac approval or certification of every optional integration.
 
 ## Validation and corrections
 
