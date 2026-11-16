@@ -47,6 +47,35 @@ final class ListenUITests:XCTestCase {
         XCTAssertTrue(app.staticTexts["Library & iCloud"].waitForExistence(timeout:10))
         let attachment=XCTAttachment(screenshot:app.screenshot());attachment.name="Settings";attachment.lifetime = .keepAlways;add(attachment)
     }
+    func testBookmarkNoteSurvivesAppTermination() throws {
+        // Two cold launches and keyboard automation take over two minutes on hosted runners.
+        executionTimeAllowance = 180
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting"]; app.launch()
+        let book = app.cells.containing(.staticText, identifier: "Sample recording").firstMatch
+        XCTAssertTrue(book.waitForExistence(timeout: 30)); book.tap()
+        app.buttons["startListening"].tap()
+        XCTAssertTrue(app.buttons["playerPlayPause"].waitForExistence(timeout: 15))
+        // Pause progress updates before editing so XCTest can observe an idle event loop.
+        app.buttons["playerPlayPause"].tap()
+        app.buttons["addBookmark"].tap()
+        XCTAssertTrue(app.staticTexts["bookmarkSaved"].waitForExistence(timeout: 5))
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Bookmarks (")).firstMatch.tap()
+        let mark = app.buttons["userBookmark"].firstMatch
+        XCTAssertTrue(mark.waitForExistence(timeout: 10)); mark.swipeRight()
+        app.buttons["Edit note"].tap()
+        let note = app.descendants(matching: .any).matching(identifier: "bookmarkNote").firstMatch
+        XCTAssertTrue(note.waitForExistence(timeout: 10)); note.tap(); note.typeText(" Persisted QA note")
+        app.buttons["Save"].tap()
+        app.terminate()
+        app.launchArguments = ["--uitesting", "--uitesting-preserve"]; app.launch()
+        XCTAssertTrue(book.waitForExistence(timeout: 30)); book.tap()
+        app.buttons["startListening"].tap()
+        XCTAssertTrue(app.buttons["playerPlayPause"].waitForExistence(timeout: 15))
+        app.buttons["playerPlayPause"].tap()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Bookmarks (")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["userBookmark"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["userBookmark"].firstMatch.label.contains("Persisted QA note"))
+    }
     func testLibraryScreenshot() throws {
         let app=XCUIApplication();app.launchArguments=["--uitesting"];app.launch()
         XCTAssertTrue(app.staticTexts["Sample recording"].firstMatch.waitForExistence(timeout:30))

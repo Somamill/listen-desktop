@@ -18,7 +18,7 @@ import SwiftUI
     let root =
       testing
       ? FileManager.default.temporaryDirectory.appendingPathComponent("listen-ui-tests") : nil
-    if testing {
+    if testing && !ProcessInfo.processInfo.arguments.contains("--uitesting-preserve") {
       try? FileManager.default.removeItem(at: root!)
       UserDefaults.standard.set(false, forKey: "cloudEnabled")
     }
@@ -33,7 +33,7 @@ import SwiftUI
     _goodreads = StateObject(wrappedValue: GoodreadsConnection())
     _servers = StateObject(wrappedValue: ServerLibrary(root: library.root))
     _transfer = StateObject(wrappedValue: LocalTransfer())
-    if testing, let sample = Bundle.main.url(forResource: "Sample", withExtension: "mp3") {
+    if testing && library.books.isEmpty, let sample = Bundle.main.url(forResource: "Sample", withExtension: "mp3") {
       Task { await library.importFiles([sample], enrich: false) }
     }
   }
