@@ -33,7 +33,7 @@ jobs:
       - name: Build sandboxed Mac app
         run: |
           xcodebuild -project ios/Listen.xcodeproj -scheme Listen -configuration Release -destination 'generic/platform=macOS,variant=Mac Catalyst' -derivedDataPath "$RUNNER_TEMP/listen-catalyst" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build > "$RUNNER_TEMP/catalyst-build.log" 2>&1 || { tail -100 "$RUNNER_TEMP/catalyst-build.log"; exit 1; }
-          python3 ios/scripts/check_bundle.py "$RUNNER_TEMP/listen-catalyst/Build/Products/Release-maccatalyst/listen Player.app"
+          python3 ios/scripts/check_bundle.py "$RUNNER_TEMP/listen-catalyst/Build/Products/Release-maccatalyst/sovo.app"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

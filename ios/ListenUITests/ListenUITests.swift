@@ -91,9 +91,8 @@ final class ListenUITests:XCTestCase {
         // Two cold launches and keyboard automation take over two minutes on hosted runners.
         executionTimeAllowance = 180
         let app = XCUIApplication(); app.launchArguments = ["--uitesting"]; app.launch()
-        let book = app.cells.containing(.staticText, identifier: "Sample recording").firstMatch
+        let book = app.buttons["book-Sample recording"]
         XCTAssertTrue(book.waitForExistence(timeout: 30)); book.tap()
-        app.buttons["startListening"].tap()
         XCTAssertTrue(app.buttons["playerPlayPause"].waitForExistence(timeout: 15))
         // Pause progress updates before editing so XCTest can observe an idle event loop.
         app.buttons["playerPlayPause"].tap()
@@ -109,7 +108,6 @@ final class ListenUITests:XCTestCase {
         app.terminate()
         app.launchArguments = ["--uitesting", "--uitesting-preserve"]; app.launch()
         XCTAssertTrue(book.waitForExistence(timeout: 30)); book.tap()
-        app.buttons["startListening"].tap()
         XCTAssertTrue(app.buttons["playerPlayPause"].waitForExistence(timeout: 15))
         app.buttons["playerPlayPause"].tap()
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Bookmarks (")).firstMatch.tap()

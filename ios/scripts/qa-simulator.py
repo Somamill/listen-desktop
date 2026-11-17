@@ -35,7 +35,7 @@ def main():
             raise RuntimeError(f'No available {family} simulator runtime')
         preferred = 'Pro Max' if family == 'iPhone' else '13-inch'
         runtime, template = next((m for m in matches if preferred in m[1]['name']), matches[0])
-        device_type = next(t['identifier'] for t in types if t['name'] == template['name'])
+        device_type = template.get('deviceTypeIdentifier') or next(t['identifier'] for t in types if t['name'] == template['name'])
         udid = capture('xcrun', 'simctl', 'create', f'dot-qa-sovo-{family}', device_type, runtime)
         try:
             subprocess.run(['xcrun', 'simctl', 'boot', udid], check=True, timeout=180)
@@ -44,7 +44,7 @@ def main():
                 result = subprocess.run([
                     'xcodebuild', '-project', 'ios/Listen.xcodeproj', '-scheme', 'Listen',
                     '-destination', f'platform=iOS Simulator,id={udid}',
-                    '-derivedDataPath', str(derived),
+                    '-derivedDataPath', str(derived), '-jobs', '2',
                     '-resultBundlePath', str(artifacts / f'{family}.xcresult'),
                     '-parallel-testing-enabled', 'NO', '-test-timeouts-enabled', 'YES',
                     '-maximum-test-execution-time-allowance', '180', 'CODE_SIGNING_ALLOWED=NO', 'test',
