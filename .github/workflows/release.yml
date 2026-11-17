@@ -6,7 +6,10 @@ on:
 permissions:
   contents: read
 jobs:
+  qa:
+    uses: ./.github/workflows/app-qa.yml
   build:
+    needs: qa
     strategy:
       fail-fast: false
       matrix:

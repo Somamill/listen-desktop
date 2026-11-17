@@ -1,0 +1,56 @@
+name: App regression QA
+on:
+  workflow_call:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: app-qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  backend:
+    uses: ./.github/workflows/tests.yml
+  simulator:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Verify disposable-simulator cleanup
+        run: python3 -m unittest discover -s ios/scripts -p "test_*.py" -v
+      - name: Test native iPhone and iPad regressions
+        run: python3 ios/scripts/qa-simulator.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-regressions
+          path: ${{ runner.temp }}/listen-qa
+          retention-days: 7
+  catalyst:
+    runs-on: macos-26
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Build sandboxed Mac app
+        run: |
+          xcodebuild -project ios/Listen.xcodeproj -scheme Listen -configuration Release -destination 'generic/platform=macOS,variant=Mac Catalyst' -derivedDataPath "$RUNNER_TEMP/listen-catalyst" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build > "$RUNNER_TEMP/catalyst-build.log" 2>&1 || { tail -100 "$RUNNER_TEMP/catalyst-build.log"; exit 1; }
+          python3 ios/scripts/check_bundle.py "$RUNNER_TEMP/listen-catalyst/Build/Products/Release-maccatalyst/listen Player.app"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: catalyst-build-log
+          path: ${{ runner.temp }}/catalyst-build.log
+          retention-days: 7
+  quality-gate:
+    if: always()
+    needs: [backend, simulator, catalyst]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every check to pass
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'CHECK'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          assert all(job['result'] == 'success' for job in results.values()), results
+          CHECK

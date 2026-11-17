@@ -23,6 +23,20 @@ import XCTest
     XCTAssertFalse(session.categoryOptions.contains(.allowAirPlay))
     XCTAssertFalse(session.categoryOptions.contains(.allowBluetoothA2DP))
   }
+  func testCorruptLibraryIndexRetainsImportedMedia() throws {
+    let library = root.appendingPathComponent("library")
+    try FileManager.default.createDirectory(at: library, withIntermediateDirectories: true)
+    let media = library.appendingPathComponent("original.mp3")
+    let original = Data("user media must survive a corrupt index".utf8)
+    try original.write(to: media)
+    let index = library.appendingPathComponent("index.json")
+    try Data("{interrupted index".utf8).write(to: index)
+    let store = LibraryStore(root: library)
+    XCTAssertNotNil(store.error)
+    XCTAssertTrue(store.books.isEmpty)
+    XCTAssertEqual(try Data(contentsOf: media), original)
+    XCTAssertEqual(try String(contentsOf: index, encoding: .utf8), "{interrupted index")
+  }
   func testProgressConflictResolutionAndTrackBoundaries() {
     var book = AudioBook(
       title: "Test",
