@@ -1,5 +1,7 @@
 # Background release QA
 
+**Owner policy, 17 November 2026:** GitHub Actions and automatic Store delivery are disabled to stop Actions-minute usage. GitHub hosts source and pull requests; checks and Xcode builds run locally in the background. Do not re-enable workflows or set `STORE_RELEASE_ENABLED=true` without renewed explicit owner approval. Existing signing secrets are not deleted by disabling Actions.
+
 `.github/workflows/app-qa.yml` runs through the native-player CI workflow on pull requests and main commits. It can also be dispatched manually before preparing a Store build. The GitHub release workflow requires this same reusable QA workflow before packaging or publishing.
 
 The final `quality-gate` fails if any dependency fails, is cancelled, or is skipped. It covers Python unit/dependency/frontend checks, native XCTest logic and UI tests on fresh iPhone and iPad simulators, and a sandboxed Mac Catalyst build with bundle/privacy checks. Native tests cover imports, playback and progress persistence, bookmarks and note editing, navigation with the mini-player, settings, and server-connection forms. A new UI test terminates and relaunches the app to verify bookmark-note persistence. Corrupt library-index tests verify that imported media and the original index are retained.
