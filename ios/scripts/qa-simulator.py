@@ -55,7 +55,7 @@ def main():
             verify_results(json.loads(capture('xcrun', 'xcresulttool', 'get', 'test-results', 'tests',
                                               '--path', str(artifacts / f'{family}.xcresult'), '--compact')))
             subprocess.run(['python3', 'ios/scripts/check_bundle.py',
-                            str(derived / 'Build/Products/Debug-iphonesimulator/Listen.app')], check=True)
+                            str(derived / 'Build/Products/Debug-iphonesimulator/sovo.app')], check=True)
         finally:
             subprocess.run(['xcrun', 'simctl', 'shutdown', udid], check=False, timeout=60)
             subprocess.run(['xcrun', 'simctl', 'delete', udid], check=True, timeout=180)

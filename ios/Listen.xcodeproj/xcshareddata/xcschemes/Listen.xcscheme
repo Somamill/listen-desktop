@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-               BuildableName = "Listen.app"
+               BuildableName = "sovo.app"
                BlueprintName = "Listen"
                ReferencedContainer = "container:Listen.xcodeproj">
             </BuildableReference>
@@ -33,7 +33,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-            BuildableName = "Listen.app"
+            BuildableName = "sovo.app"
             BlueprintName = "Listen"
             ReferencedContainer = "container:Listen.xcodeproj">
          </BuildableReference>
@@ -80,7 +80,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-            BuildableName = "Listen.app"
+            BuildableName = "sovo.app"
             BlueprintName = "Listen"
             ReferencedContainer = "container:Listen.xcodeproj">
          </BuildableReference>
@@ -97,7 +97,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-            BuildableName = "Listen.app"
+            BuildableName = "sovo.app"
             BlueprintName = "Listen"
             ReferencedContainer = "container:Listen.xcodeproj">
          </BuildableReference>
