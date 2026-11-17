@@ -14,13 +14,19 @@ struct GoodreadsView: View {
         List {
                 Section {
                     Text(goodreads.status).font(.subheadline).foregroundStyle(.secondary)
+                    if goodreads.snapshotDate != .distantPast {
+                        Text("Saved shelves: \(goodreads.snapshotDate.formatted(date: .abbreviated, time: .shortened))").font(.footnote).foregroundStyle(.secondary)
+                    }
+                    if goodreads.needsSignIn {
+                        Label("Reconnect to refresh. Your saved shelves are still available.", systemImage: "person.crop.circle.badge.exclamationmark").font(.footnote)
+                    }
                     Button(goodreads.profileID == nil ? "Sign in to Goodreads":"Open Goodreads connection",systemImage:"person.crop.circle.badge.checkmark"){goodreads.connect()}.accessibilityIdentifier("connectGoodreads")
                     if goodreads.profileID != nil {Button("Refresh shelves",systemImage:"arrow.clockwise"){goodreads.refresh()}.disabled(goodreads.refreshing)}
                     DisclosureGroup("Other ways to bring your shelves") {
                         TextField("Goodreads profile or My Books link",text:$profile).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         Button("Connect profile link"){goodreads.setProfile(profile)}.disabled(profile.isEmpty)
                         Button("Import Goodreads CSV",systemImage:"doc"){csv=true}
-                        Text("CSV is a saved snapshot. The in-app website connection refreshes while sovo. is open. Sign-in and reading history stay on this device.").font(.footnote).foregroundStyle(.secondary)
+                        Text("CSV is a saved snapshot. The in-app website connection refreshes while sovo. is open. Saved shelves can sync through iCloud; website sign-in stays on this device.").font(.footnote).foregroundStyle(.secondary)
                     }
                 }
                 if !goodreads.books.isEmpty {
@@ -44,7 +50,7 @@ struct GoodreadsView: View {
                                         }
                                     }
                                 }
-                                if let url=URL(string:book.url),url.scheme=="https",["goodreads.com","www.goodreads.com"].contains(url.host?.lowercased() ?? ""){Button("View on Goodreads"){goodreads.openBook(url)}}
+                                if let url=URL(string:book.url),url.scheme=="https",["goodreads.com","www.goodreads.com"].contains(url.host?.lowercased() ?? ""){Button("View or update on Goodreads"){goodreads.openBook(url)}}
                             }.padding(.vertical,8)
                         }
                     }

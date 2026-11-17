@@ -194,6 +194,69 @@ import XCTest
     let restored = try JSONDecoder().decode(GoodreadsCloudSnapshot.self, from: JSONEncoder().encode(a))
     XCTAssertEqual(restored, a)
   }
+  func testCloudManifestMergePreservesNewerRewindAndRejectsWrongBook() throws {
+    var book = AudioBook(title: "Cloud test", tracks: [AudioTrack(filename: "sample.m4b", duration: 120)])
+    let folder = root.appendingPathComponent(book.id.uuidString)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let file = folder.appendingPathComponent("book.json")
+    book.state.position = 90; book.state.updatedAt = Date(timeIntervalSince1970: 100)
+    try CloudLibrary.writeBook(book, at: file)
+    var newer = book; newer.state.position = 12; newer.state.updatedAt = Date(timeIntervalSince1970: 200)
+    try CloudLibrary.writeBook(newer, at: file)
+    try CloudLibrary.writeBook(book, at: file)
+    let restored = try JSONDecoder().decode(AudioBook.self, from: CloudLibrary.coordinatedRead(file))
+    XCTAssertEqual(restored.state.position, 12)
+    var wrong = book; wrong.id = UUID()
+    XCTAssertThrowsError(try CloudLibrary.writeBook(wrong, at: file))
+    XCTAssertEqual(try JSONDecoder().decode(AudioBook.self, from: CloudLibrary.coordinatedRead(file)), restored)
+  }
+  func testCloudMetadataBoundsAndProgressQuota() throws {
+    let file = root.appendingPathComponent("oversize.json")
+    try Data(repeating: 65, count: 64).write(to: file)
+    XCTAssertThrowsError(try CloudLibrary.coordinatedRead(file, limit: 32))
+    let alias = root.appendingPathComponent("alias.json")
+    try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: file)
+    XCTAssertThrowsError(try CloudLibrary.coordinatedRead(alias))
+    let value = try JSONEncoder().encode(ListeningState())
+    XCTAssertTrue(CloudLibrary.progressFits(value, key: "progress-1", values: [:]))
+    XCTAssertFalse(CloudLibrary.progressFits(Data(repeating: 0, count: 900_001), key: "progress-1", values: [:]))
+    let full = Dictionary(uniqueKeysWithValues: (0..<1000).map { ("other-\($0)", Data()) })
+    XCTAssertFalse(CloudLibrary.progressFits(value, key: "progress-1", values: full))
+    XCTAssertTrue(CloudLibrary.progressFits(value, key: "other-0", values: full))
+  }
+  func testCloudAccountChangePausesWithoutRemovingLocalBooks() async throws {
+    let store = LibraryStore(root: root.appendingPathComponent("account-change"))
+    store.books = [AudioBook(title: "Keep local")]
+    let cloud = CloudLibrary(store: store)
+    cloud.accountChanged()
+    await cloud.sync()
+    XCTAssertTrue(cloud.accountNeedsConfirmation)
+    XCTAssertEqual(store.books.first?.title, "Keep local")
+    XCTAssertNil(cloud.lastChecked)
+  }
+  func testCloudAccountBindingRejectsChangedAndCorruptIdentity() throws {
+    let token = NSUUID()
+    let archive = try NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: false)
+    XCTAssertTrue(CloudLibrary.accountMatches(token, archived: archive))
+    XCTAssertFalse(CloudLibrary.accountMatches(NSUUID(), archived: archive))
+    XCTAssertFalse(CloudLibrary.accountMatches(token, archived: Data("invalid archive".utf8)))
+    XCTAssertFalse(CloudLibrary.accountMatches(token, archived: Data(repeating: 0, count: 65_537)))
+  }
+  func testGoodreadsInvalidRefreshRetainsSavedShelfAndRevision() throws {
+    let oldProfile = UserDefaults.standard.object(forKey: "goodreadsProfileID")
+    defer { UserDefaults.standard.set(oldProfile, forKey: "goodreadsProfileID") }
+    let connection = GoodreadsConnection(root: root)
+    let csv = root.appendingPathComponent("shelf.csv")
+    try "Book Id,Title,Author,Exclusive Shelf\n1,Keep this book,Author,read\n".write(to: csv, atomically: true, encoding: .utf8)
+    connection.importCSV(csv)
+    let snapshot = connection.cloudSnapshot
+    connection.refreshing = true
+    connection.acceptPage([GoodreadsBook(id: "bad-id", title: "Invalid", author: "Author", shelf: "read", url: "https://attacker.test")], hasNext: false)
+    XCTAssertEqual(connection.cloudSnapshot, snapshot)
+    XCTAssertFalse(connection.refreshing)
+    connection.acceptPage([], hasNext: false)
+    XCTAssertEqual(connection.cloudSnapshot, snapshot, "A late callback must not clear a completed refresh")
+  }
   func testGoodreadsCloudRoundTripPreservesRevisionAndLocalDisconnect() async throws {
     let defaults = UserDefaults.standard
     let oldDevice = defaults.object(forKey: "deviceID"), oldSync = defaults.object(forKey: "goodreadsCloudSync"), oldProfile = defaults.object(forKey: "goodreadsProfileID")

@@ -8,6 +8,7 @@ struct SettingsView: View {
   @AppStorage("smartRewind") private var rewind = true
   @AppStorage("appearance") private var appearance = "system"
   @State private var disconnect = false
+  @State private var confirmCloudAccount = false
   @AppStorage("rewindLimit") private var rewindLimit = 30.0
   @AppStorage("skipForward") private var skipForward = 30.0
   @AppStorage("skipBackward") private var skipBackward = 15.0
@@ -22,12 +23,22 @@ struct SettingsView: View {
             of: cloud.enabled
           ) { _, _ in Task { await cloud.sync() } }
           Text(cloud.status).font(.footnote).foregroundStyle(.secondary)
+          if let checked = cloud.lastChecked {
+            Text("Last checked: \(checked.formatted(date: .abbreviated, time: .shortened))")
+              .font(.footnote).foregroundStyle(.secondary)
+          }
+          if cloud.accountNeedsConfirmation {
+            Button("Use current iCloud account") { confirmCloudAccount = true }
+              .accessibilityIdentifier("confirmCloudAccount")
+          }
           Toggle("Sync Goodreads shelves with iCloud", isOn: $goodreads.syncEnabled).disabled(!cloud.enabled)
           Text("Shares your Goodreads profile link and saved shelves between your devices. Passwords and website sessions stay on each device; signing in again may be needed.")
             .font(.footnote).foregroundStyle(.secondary)
           Button("Sync now", systemImage: "arrow.triangle.2.circlepath") {
             Task { await cloud.sync() }
-          }.disabled(cloud.syncing || !cloud.enabled)
+          }.disabled(cloud.syncing || !cloud.enabled || cloud.accountNeedsConfirmation)
+          Text("Removing a book from this device keeps its iCloud copy. It can appear again after syncing.")
+            .font(.footnote).foregroundStyle(.secondary)
           Text(
             "Books download before playback and remain available offline. Signed builds need an enabled iCloud container. This app’s iCloud library is separate from your Mac’s existing audiobook folder; use Files to import from it."
           ).font(.footnote).foregroundStyle(.secondary)
@@ -106,6 +117,11 @@ struct SettingsView: View {
       }.navigationTitle("Settings").confirmationDialog(
         "Disconnect Goodreads on this device?", isPresented: $disconnect, titleVisibility: .visible
       ) { Button("Disconnect", role: .destructive) { goodreads.disconnect() } }
+      .confirmationDialog("Upload this local library to the current iCloud account?", isPresented: $confirmCloudAccount, titleVisibility: .visible) {
+        Button("Use current account and sync") { cloud.confirmCurrentAccount() }
+      } message: {
+        Text("This may upload existing local books and saved Goodreads shelves to the newly signed-in Apple Account. Cancel to keep sync paused.")
+      }
     }
   }
 }

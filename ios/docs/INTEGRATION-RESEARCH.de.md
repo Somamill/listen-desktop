@@ -2,6 +2,8 @@
 
 Recherche vom **18. November 2026**. „Airport“ wird hier entsprechend dem bisherigen Projektverlauf als **AirPods einschließlich automatischer Schlafpause** verstanden. Grundlage sind Apple-Dokumentation, Goodreads-Seiten, öffentliche Implementierungen, Reddit-Berichte und der lokale sovo.-Quellcode. Dies ist eine Machbarkeits- und Integrationsdokumentation, keine Bestätigung eines neuen Gerätetests.
 
+**Quellcode-Ausgangsstand:** `e3c5b73`, vor der Umsetzung in Build 9. Die nachfolgenden Beschreibungen und offenen Punkte dokumentieren diesen Forschungsstand. Den neueren Implementierungs- und Prüfstand enthält [Integration QA — Build 9](INTEGRATION-QA.de.md).
+
 ## Ergebnis
 
 | Integration | Machbarkeit | Vorhandener Stand | Was noch nachgewiesen werden muss |

@@ -36,7 +36,7 @@ Your existing Mac audiobook folder is **not hard-coded or automatically accessib
 
 Books and manifests live in the app’s iCloud Documents container; the local library caches files for offline playback. Remote audio downloads before playback. Progress also uses iCloud key-value storage and resolves conflicts by update timestamp with a deterministic device-ID tie-break. Active local playback is not jumped to a remote position. File upload completion and network availability are controlled by iCloud; “sync” is not an upload guarantee.
 
-This preview needs **real-device testing with the same signed Apple account on two devices**: upload/download completion, interrupted transfers, device lock, long books, storage pressure and concurrent playback. Source code and conflict tests do not certify these behaviors end to end. Goodreads cookies, credentials, and shelves are not synced through iCloud.
+This preview needs **real-device testing with the same signed Apple account on two devices**: upload/download completion, interrupted transfers, device lock, long books, storage pressure and concurrent playback. Source code and conflict tests do not certify these behaviors end to end. Saved Goodreads shelves and the profile identifier can sync through iCloud; cookies and credentials remain on each device. Metadata writes are coordinated, account changes pause uploads until confirmed in Settings, and the progress key-value cache has a conservative quota guard with book manifests as fallback. Removing a local book does not delete its cloud copy.
 
 ## Goodreads
 

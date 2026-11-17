@@ -9,6 +9,10 @@ import ZIPFoundation
         XCTAssertTrue(GoodreadsPrivacy.needsWebsiteScripts(URL(string: "https://www.goodreads.com/ap/signin")!))
         XCTAssertTrue(GoodreadsPrivacy.needsWebsiteScripts(URL(string: "https://www.amazon.com/ap/signin")!))
         XCTAssertFalse(GoodreadsPrivacy.needsWebsiteScripts(URL(string: "https://www.goodreads.com/review/list/123")!))
+        let edition = URL(string: "https://www.goodreads.com/book/show/123")!
+        XCTAssertFalse(GoodreadsPrivacy.needsWebsiteScripts(edition))
+        XCTAssertTrue(GoodreadsPrivacy.needsWebsiteScripts(edition, interactive: true))
+        XCTAssertFalse(GoodreadsPrivacy.needsWebsiteScripts(URL(string: "https://goodreads.com.attacker.test/book/show/123")!, interactive: true))
         XCTAssertFalse(GoodreadsPrivacy.allowsNavigation(URL(string: "https://goodreads.com.attacker.test/ap/signin")!, mainFrame: true))
         XCTAssertFalse(GoodreadsPrivacy.allowsNavigation(URL(string: "http://www.goodreads.com/user/sign_in")!, mainFrame: true))
         let captcha = URL(string: "https://www.google.com/recaptcha/api2/anchor")!
@@ -34,6 +38,25 @@ import ZIPFoundation
         await fulfillment(of: [loaded], timeout: 45)
         let text = try await web.evaluateJavaScript("document.getElementById('check').textContent") as? String
         XCTAssertEqual(text, "native extraction")
+    }
+    func testGoodreadsShelfParserRejectsLoginAndAmbiguousEmptyPages() async throws {
+        let web = WKWebView(frame: .zero)
+        let fixtures = [
+            ("<table id='books'><tbody id='booksBody'><tr class='bookalike'><td class='title'><a class='bookTitle' href='https://www.goodreads.com/book/show/123'>Test book</a></td><td class='author'><a>Author</a></td><td class='shelves'><a class='shelf'>read</a></td></tr></tbody></table>", true, 1),
+            ("<table id='books'><tbody id='booksBody'></tbody></table>", false, 0),
+            ("<table id='books'><tbody id='booksBody'><tr><td>No books</td></tr></tbody></table>", true, 0),
+            ("<form action='/user/sign_in'><input type='password'></form><table id='books'><tbody id='booksBody'><tr><td>No books</td></tr></tbody></table>", false, 0)
+        ]
+        for (html, valid, count) in fixtures {
+            let loaded = expectation(description: "Shelf fixture loaded")
+            let probe = GoodreadsPrivacyPageProbe { loaded.fulfill() }
+            web.navigationDelegate = probe
+            web.loadHTMLString(html, baseURL: URL(string: "https://www.goodreads.com/review/list/123"))
+            await fulfillment(of: [loaded], timeout: 45)
+            let result = try await web.evaluateJavaScript(GoodreadsConnection.shelfScript) as? [String: Any]
+            XCTAssertEqual(result?["valid"] as? Bool, valid)
+            XCTAssertEqual((result?["books"] as? [[String: Any]])?.count, count)
+        }
     }
 
     var root: URL!

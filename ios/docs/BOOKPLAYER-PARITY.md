@@ -2,7 +2,7 @@
 
 Detailed integration feasibility, prerequisites and deferred device checks: [iCloud, Goodreads and AirPods research (German, 18 November 2026)](INTEGRATION-RESEARCH.de.md).
 
-The current update candidate is sovo. 1.0.1 (8), independently implemented and uploaded for iOS and Mac. It is not a complete BookPlayer replacement. The local native regression suites passed 41 cases on each iPhone/iPad simulator; one entitlement-dependent Keychain test was skipped per device. Fresh physical-device coverage remains separate.
+The current source candidate is sovo. 1.0.1 (9), independently implemented. Build 8 remains the last uploaded iOS/Mac candidate; build 9 has a signed device-scoped QA package and has not been uploaded to Apple. It is not a complete BookPlayer replacement. The latest iPhone Duo simulator regression run passed 39 logic cases and 8 UI cases; one entitlement-dependent Keychain test was skipped. Fresh physical-device coverage remains separate. See the [Build 9 integration QA report](INTEGRATION-QA.de.md).
 
 ## Evidence
 

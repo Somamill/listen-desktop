@@ -258,6 +258,7 @@ struct AirPodsSleepHelp: View {
         Text("Supported AirPods can automatically pause sovo. when Apple detects that you have fallen asleep.")
       }
       Section("Set up once") {
+        Text("Requires AirPods 4 or later, AirPods Pro 2 or later, or AirPods Max 2, with compatible up-to-date software and firmware.")
         Text("1. Wear your AirPods and connect them to this device.")
         Text("2. On iPhone or iPad, open Settings and choose your AirPods. On Mac, open System Settings and choose your AirPods.")
         Text("3. Turn on Pause Media While Falling Asleep. If needed, look under Audio & Routing.")
@@ -270,6 +271,7 @@ struct AirPodsSleepHelp: View {
       }
       Section {
         Link("Apple’s AirPods setup and supported models", destination: URL(string: "https://support.apple.com/108764")!)
+        Link("Apple’s AirPods Max 2 sleep-pause setup", destination: URL(string: "https://support.apple.com/en-euro/guide/airpods/dev3e3e8821d/27/web/27")!)
       }
     }.navigationTitle("AirPods sleep pause").navigationBarTitleDisplayMode(.inline)
       .accessibilityIdentifier("airPodsSleepGuide")

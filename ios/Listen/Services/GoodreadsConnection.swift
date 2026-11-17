@@ -7,17 +7,19 @@ import Combine
     @Published var status = "Connect Goodreads to bring your reading shelves here."
     @Published var refreshing = false
     @Published var showSignIn = false
+    @Published private(set) var needsSignIn = false
     @Published var profileID: String?
     @Published var syncEnabled: Bool {
         didSet { UserDefaults.standard.set(syncEnabled, forKey: "goodreadsCloudSync"); onChange?() }
     }
     var onChange: (() -> Void)?
-    private(set) var snapshotDate = Date.distantPast
+    @Published private(set) var snapshotDate = Date.distantPast
     private var snapshotDeviceID: String
     let deviceID: String
     let webView: WKWebView
     private let file: URL
     private var timer: Timer?
+    private var refreshTimeout: Task<Void, Never>?
     private var collecting: [String:GoodreadsBook] = [:]
     private var page = 1
     private var privacyReady = false
@@ -69,6 +71,7 @@ import Combine
         timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in Task { @MainActor in self?.refresh() } }
     }
     func connect() {
+        refreshTimeout?.cancel()
         showSignIn = true
         guard privacyReady else {
             pendingConnect = true; status = "Preparing Goodreads privacy controls…"; preparePrivacy(); return
@@ -83,7 +86,13 @@ import Combine
         guard let url = URL(string: value), url.scheme == "https", ["goodreads.com","www.goodreads.com"].contains(url.host ?? "") else { status = "Use your Goodreads profile or My Books HTTPS link."; return }
         let parts = url.pathComponents
         guard let key = parts.firstIndex(where: { $0 == "show" || $0 == "list" }), parts.indices.contains(key+1), let id = parts[key+1].split(separator: "-").first, !id.isEmpty, id.allSatisfy(\.isNumber) else { status = "The Goodreads profile number could not be read."; return }
-        profileID = String(id); UserDefaults.standard.set(profileID, forKey: "goodreadsProfileID"); persist(); refresh()
+        guard id.count <= 30 else { status = "The Goodreads profile number is not valid."; return }
+        if profileID != String(id) {
+            refreshTimeout?.cancel(); webView.stopLoading(); refreshing = false
+            profileID = String(id); books = []; snapshotDate = .distantPast; snapshotDeviceID = deviceID
+            UserDefaults.standard.set(profileID, forKey: "goodreadsProfileID"); writeSnapshot()
+        }
+        refresh()
     }
     func refresh() {
         guard !refreshing, !showSignIn else { return }
@@ -92,11 +101,28 @@ import Combine
         collecting = [:]; page = 1; refreshing = true; status = "Refreshing Goodreads shelves…"
         loadPage(profileID)
     }
-    private func loadPage(_ id: String) { webView.load(URLRequest(url: URL(string: "https://www.goodreads.com/review/list/\(id)?shelf=all&per_page=100&page=\(page)")!)) }
+    private func loadPage(_ id: String) {
+        refreshTimeout?.cancel()
+        refreshTimeout = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(60))
+            guard !Task.isCancelled, let self, self.refreshing else { return }
+            self.webView.stopLoading()
+            self.failRefresh("Goodreads took too long to respond. Saved shelves are retained; try again or reconnect.")
+        }
+        webView.load(URLRequest(url: URL(string: "https://www.goodreads.com/review/list/\(id)?shelf=all&per_page=100&page=\(page)")!))
+    }
+    private func failRefresh(_ message: String, signIn: Bool = false) {
+        refreshTimeout?.cancel(); refreshing = false; collecting = [:]
+        needsSignIn = signIn; status = message
+    }
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        guard let url = webView.url, ["goodreads.com","www.goodreads.com"].contains(url.host ?? "") else { return }
+        guard let url = webView.url else { return }
+        guard ["goodreads.com","www.goodreads.com"].contains(url.host ?? "") else {
+            if refreshing { failRefresh("Goodreads needs you to reconnect. Saved shelves are retained.", signIn: true) }
+            return
+        }
         if url.path.contains("sign_in") || url.path.contains("sign_up") {
-            if refreshing { refreshing = false; status = "Goodreads needs you to sign in again. Saved shelves are retained." }
+            if refreshing { failRefresh("Goodreads needs you to sign in again. Saved shelves are retained.", signIn: true) }
             return
         }
         if !url.path.hasPrefix("/review/list/") {
@@ -111,9 +137,38 @@ import Combine
             return
         }
         guard refreshing else { return }
-        let script = #"""
+        guard url.pathComponents.last == profileID else {
+            failRefresh("Goodreads opened a different profile. Reconnect to choose your shelves."); return
+        }
+        webView.evaluateJavaScript(Self.shelfScript) { [weak self] result, error in
+            guard let self, self.refreshing else { return }
+            guard error == nil, let object = result as? [String:Any], object["valid"] as? Bool == true,
+                  let rows = object["books"] as? [[String:Any]], let data = try? JSONSerialization.data(withJSONObject: rows),
+                  let decoded = try? JSONDecoder().decode([GoodreadsBook].self, from: data) else {
+                self.failRefresh("Goodreads page could not be read. Open the connection or import your Goodreads CSV. Saved shelves are retained."); return
+            }
+            self.acceptPage(decoded, hasNext: object["next"] as? Bool == true)
+        }
+    }
+    func acceptPage(_ decoded: [GoodreadsBook], hasNext: Bool) {
+        guard refreshing else { return }
+        let candidate = GoodreadsCloudSnapshot(profileID: profileID, books: decoded, updatedAt: Date(), deviceID: deviceID)
+        guard candidate.valid else { failRefresh("Goodreads returned invalid book data. Saved shelves are retained."); return }
+        for book in decoded { collecting[book.id] = book }
+        guard collecting.count <= 5000, !(hasNext && page >= 50) else {
+            failRefresh("Goodreads library is too large for a complete refresh. Saved shelves are retained; use a CSV export."); return
+        }
+        if hasNext, let id = profileID { page += 1; loadPage(id); return }
+        books = Array(collecting.values).sorted { $0.title < $1.title }
+        refreshTimeout?.cancel(); refreshing = false; needsSignIn = false
+        persist(); status = "Goodreads shelves refreshed · \(books.count) books"; showSignIn = false
+    }
+    nonisolated static let shelfScript = #"""
         (() => {
           const rows = Array.from(document.querySelectorAll('tr.bookalike'));
+          const shelfTable = document.querySelector('#books #booksBody, #booksBody');
+          const blocked = !!document.querySelector('form[action*="sign_in"],form[action*="signin"],input[type="password"],iframe[src*="recaptcha"]');
+          const empty = /no books|haven.t added any books|0 books/i.test(document.querySelector('#books, #booksBody')?.textContent || '');
           return {books: rows.map(row => {
             const title = row.querySelector('td.title a.bookTitle,td.title a');
             const author = row.querySelector('td.author a');
@@ -121,23 +176,12 @@ import Combine
             const image = row.querySelector('td.cover img');
             const id = title?.href.match(/\/book\/show\/(\d+)/)?.[1];
             return {id:id || row.id,title:(title?.textContent || '').trim(),author:(author?.textContent || '').trim(),shelf:(shelf?.textContent || 'to-read').trim(),cover:image?.src || null,url:title?.href || ''};
-          }).filter(b => b.id && b.title),next:!!document.querySelector('a.next_page:not(.disabled)'),valid:!!document.querySelector('#books, #booksBody, table.tableList')};
+          }).filter(b => b.id && b.title),next:!!document.querySelector('a.next_page:not(.disabled)'),valid:!blocked && !!shelfTable && (rows.length > 0 || empty)};
         })()
         """#
-        webView.evaluateJavaScript(script) { [weak self] result, error in
-            guard let self else { return }
-            guard error == nil, let object = result as? [String:Any], object["valid"] as? Bool == true, let rows = object["books"] as? [[String:Any]], let data = try? JSONSerialization.data(withJSONObject: rows), let decoded = try? JSONDecoder().decode([GoodreadsBook].self, from: data) else {
-                self.refreshing = false; self.status = "Goodreads page could not be read. Open the connection or import your Goodreads CSV. Saved shelves are retained."; return
-            }
-            for book in decoded { self.collecting[book.id] = book }
-            if self.refreshing, object["next"] as? Bool == true, self.page < 20, let id = self.profileID { self.page += 1; self.loadPage(id); return }
-            self.books = Array(self.collecting.values).sorted { $0.title < $1.title }; self.refreshing = false
-            self.persist(); self.status = "Goodreads shelves refreshed · \(self.books.count) books"; self.showSignIn = false
-        }
-    }
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
         guard (error as NSError).code != NSURLErrorCancelled else { return }
-        refreshing = false; status = "Goodreads is unavailable. Your saved shelves are still here."
+        failRefresh("Goodreads is unavailable. Your saved shelves are still here.")
     }
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         self.webView(webView, didFailProvisionalNavigation: navigation, withError: error)
@@ -163,10 +207,11 @@ import Combine
                  decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
         guard let url = action.request.url else { decisionHandler(.cancel, preferences); return }
         let mainFrame = action.targetFrame?.isMainFrame ?? true
-        preferences.allowsContentJavaScript = GoodreadsPrivacy.needsWebsiteScripts(url)
+        preferences.allowsContentJavaScript = GoodreadsPrivacy.needsWebsiteScripts(url, interactive: showSignIn)
         decisionHandler(privacyReady && GoodreadsPrivacy.allowsNavigation(url, mainFrame: mainFrame) ? .allow : .cancel, preferences)
     }
     func disconnect() {
+        refreshTimeout?.cancel(); needsSignIn = false
         syncEnabled = false
         pendingConnect = false; pendingRefresh = false
         profileID = nil; books = []; collecting = [:]; refreshing = false; webView.stopLoading()
@@ -233,10 +278,12 @@ enum GoodreadsPrivacy {
     static func allowsNavigation(_ url: URL, mainFrame: Bool) -> Bool {
         url.scheme == "https" && (provider(url.host?.lowercased() ?? "") || (!mainFrame && captcha(url)))
     }
-    static func needsWebsiteScripts(_ url: URL) -> Bool {
+    static func needsWebsiteScripts(_ url: URL, interactive: Bool = false) -> Bool {
         guard url.scheme == "https" else { return false }
         if captcha(url) { return true }
         guard provider(url.host?.lowercased() ?? "") else { return false }
+        if interactive, ["goodreads.com", "www.goodreads.com"].contains(url.host?.lowercased() ?? ""),
+           ["/book/show/", "/review/edit/", "/review/new/"].contains(where: { url.path.hasPrefix($0) }) { return true }
         return ["/ap/", "/user/sign_in", "/user/sign_up", "/user/password"].contains { url.path.hasPrefix($0) }
     }
     static let rules: String = {
