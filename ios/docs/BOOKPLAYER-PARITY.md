@@ -1,6 +1,6 @@
 # BookPlayer comparison and independent implementation
 
-listen. mobile 0.2.0 is a developer preview. It is not a complete BookPlayer replacement or a device-validated App Store release.
+sovo. mobile 0.2.0 is a developer preview. It is not a complete BookPlayer replacement or a device-validated App Store release.
 
 ## Evidence
 
@@ -12,11 +12,11 @@ On 13 November 2026, [REA](https://github.com/morluto/rea) inspected the **insta
 | Localized resource inspection | `ev_84b5221087a508cb759a17059a58ec15871877d8f38ecf19cc92cceaf7d733d2` | UI feature descriptions for ZIP import, servers, volume boost, smart rewind, timer choices, bookmark notes/recovery, sorting and transfer queues. |
 | `decode_interface_builder` | `ev_33db70db09f4746249c9f2e04edca02a3d52876a869a03d4e758749c273b3651` | Partial static interface structure from nine compiled interface documents; not a complete runtime reconstruction. |
 
-A declaration or translated string proves that an interface contract exists; it does **not** prove runtime behavior, entitlement approval or server availability. Public reference snapshot: `402b650ea6c3bb446b2d42fede15931ee0c109c5`. Public [BookPlayer source](https://github.com/TortugaPower/BookPlayer) was a read-only behavioral reference. No BookPlayer GPL source, icons, artwork, localization tables, hosted-service keys or binary code were incorporated into listen.'s MIT implementation. ZIPFoundation is a separately licensed MIT dependency, pinned to 0.9.20.
+A declaration or translated string proves that an interface contract exists; it does **not** prove runtime behavior, entitlement approval or server availability. Public reference snapshot: `402b650ea6c3bb446b2d42fede15931ee0c109c5`. Public [BookPlayer source](https://github.com/TortugaPower/BookPlayer) was a read-only behavioral reference. No BookPlayer GPL source, icons, artwork, localization tables, hosted-service keys or binary code were incorporated into sovo.'s MIT implementation. ZIPFoundation is a separately licensed MIT dependency, pinned to 0.9.20.
 
 ## Feature mapping
 
-| Feature | listen. implementation | Practical limit |
+| Feature | sovo. implementation | Practical limit |
 | --- | --- | --- |
 | Audio and folder imports | Files, open-in, ZIP, share extension, direct HTTPS download, temporary local browser transfer | AVFoundation-readable, unprotected audio; local transfer must be explicitly started on trusted Wi-Fi. |
 | ZIP safety | Entry/expanded-size caps, CRC verification, rejection of traversal and symbolic links | 10,000 entries / 20 GB; originals are preserved. |

@@ -10,6 +10,7 @@ import Combine
     private var timer: Timer?
     private var pending: Task<Void,Never>?
     var activeBookID: UUID?
+    weak var goodreads: GoodreadsConnection?
     init(store: LibraryStore) {
         self.store = store
         enabled = UserDefaults.standard.object(forKey: "cloudEnabled") as? Bool ?? true
@@ -60,6 +61,13 @@ import Combine
         guard let cloud = await cloudRoot() else { status = "iCloud unavailable. Sign in to iCloud and use a signed build with its iCloud capability enabled."; return }
         do {
             try FileManager.default.createDirectory(at: cloud, withIntermediateDirectories: true)
+            var shelvesPending = false
+            do {
+                try await syncGoodreads(at: cloud.deletingLastPathComponent().appendingPathComponent("Goodreads", isDirectory: true))
+            } catch {
+                shelvesPending = true
+                goodreads?.status = "Goodreads iCloud sync needs attention. Saved shelves are retained. \(error.localizedDescription)"
+            }
             // Import manifests before publishing. Files download only when opened.
             let directories = try FileManager.default.contentsOfDirectory(at: cloud, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles)
             for directory in directories {
@@ -72,10 +80,9 @@ import Combine
                 if let index = store.books.firstIndex(where: { $0.id == remote.id }) {
                     let local = store.books[index]
                     if activeBookID == local.id { continue } // Never jump active playback to another device's position.
-                    var state = local.state; state.merge(remote.state)
-                    if local.metadataUpdatedAt > remote.metadataUpdatedAt { remote = local }
-                    remote.state = state; store.books[index] = remote
-                } else { store.books.append(remote) }
+                    var merged = local; merged.merge(remote)
+                    store.books[index] = merged
+                } else { remote.ensureBasicMetadata(); store.books.append(remote) }
             }
             let values = NSUbiquitousKeyValueStore.default
             values.synchronize()
@@ -100,8 +107,32 @@ import Combine
                     if (try? Data(contentsOf: path)) != data { try data.write(to: path, options: .atomic) }
                 }
             }.value
-            status = "Synced with iCloud. Uploads and downloads continue through iCloud Drive."
+            status = shelvesPending ? "Books synced. Goodreads shelf sync needs attention." : "Synced with iCloud. Uploads and downloads continue through iCloud Drive."
         } catch { status = "iCloud needs attention: \(error.localizedDescription)" }
+    }
+    func syncGoodreads(at directory: URL) async throws {
+        guard let goodreads, goodreads.syncEnabled, !goodreads.showSignIn, !goodreads.refreshing else { return }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for file in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isSymbolicLinkKey], options: .skipsHiddenFiles) {
+            guard file.pathExtension == "json", UUID(uuidString: file.deletingPathExtension().lastPathComponent) != nil,
+              try file.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else { continue }
+            try await Self.hydrate(file)
+            guard (try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? Int.max) <= 8_000_000 else { continue }
+            let data = try await Task.detached { try Data(contentsOf: file) }.value
+            guard let snapshot = try? JSONDecoder().decode(GoodreadsCloudSnapshot.self, from: data), snapshot.valid else { continue }
+            goodreads.applyCloud(snapshot)
+        }
+        let snapshot = goodreads.cloudSnapshot
+        guard snapshot.updatedAt != .distantPast else { return }
+        guard snapshot.valid, UUID(uuidString: goodreads.deviceID) != nil else {
+            throw ListenError.message("Goodreads shelves could not be validated for iCloud. Check the imported profile and book identifiers.")
+        }
+        // Each device publishes its own snapshot, avoiding simultaneous-writer overwrites.
+        let file = directory.appendingPathComponent(goodreads.deviceID + ".json")
+        let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
+        let data = try encoder.encode(snapshot)
+        guard data.count <= 8_000_000 else { throw ListenError.message("Goodreads shelves are too large for this sync snapshot. Local shelves are retained.") }
+        if (try? Data(contentsOf: file)) != data { try data.write(to: file, options: .atomic) }
     }
     nonisolated static func safeFilename(_ name: String) -> Bool { !name.isEmpty && name != "." && name != ".." && !name.contains("/") && !name.contains("\\") }
     func download(_ book: AudioBook) async throws {

@@ -1,10 +1,10 @@
 {
   "name": "sovo.",
-  "subtitle": "Your books, at your own pace",
+  "subtitle": "Your audiobook library",
   "sku": "listen-player",
   "primaryLocale": "en-US",
-  "version": "1.0.0",
-  "buildNumber": "4",
+  "version": "1.0.1",
+  "buildNumber": "8",
   "bundleId": "io.github.somamill.listen.mobile",
   "platforms": [
     "IOS",
@@ -12,9 +12,9 @@
   ],
   "primaryCategory": "BOOKS",
   "keywords": "audiobook,player,m4b,mp3,offline,bookmarks,sleep,timer,icloud,library",
-  "description": "listen. is a personal audiobook player for your own DRM-free books. Import audio files, folders and ZIP archives, organize your library, and keep listening across your devices with iCloud.\n\nFind your place with chapters, bookmarks and notes. Adjust playback speed, set your preferred skip intervals, use smart rewind after a pause, or fall asleep with a custom timer. An explicit play queue and nested folders help keep a large library organized.\n\nBring in books from Files, iCloud Drive, direct HTTPS downloads, a temporary local browser transfer, or your own Audiobookshelf or Jellyfin server. Optional metadata matching adds book information and covers. MP3 tracks can be combined into an M4B audiobook while retaining the imported originals.\n\nConnect Goodreads to view Want to Read, Currently Reading and Read shelves in a session independent of Safari, or import a Goodreads CSV export. Goodreads authentication and refresh availability depend on Goodreads.\n\niCloud features require a signed-in Apple account. The app does not include an audiobook catalogue or supply audiobook downloads.",
-  "reviewNotes": "Core playback and file imports do not require an account. Goodreads, iCloud and media-server integrations are optional and use the user's own accounts. The Mac App Store edition is a self-contained Mac Catalyst audiobook player and does not install or depend on the separate desktop torrent/catalog application. Goodreads webpage resources are restricted to providers/authentication CAPTCHA; website scripts are disabled during shelf refresh. The privacy label includes optional Goodreads/Amazon account and website data. No ad SDK or IDFA access is included. Screenshots show the app with an original short sample recording; no audiobook catalogue or downloads are supplied.",
-  "supportUrl": "https://github.com/Somamill/listen/issues",
+  "description": "sovo. is your personal player for DRM-free audiobooks. Tap a book and start listening, right where you left off.\n\nBring books from Files, iCloud Drive, folders, ZIP archives, direct HTTPS downloads or browser transfer. Compatible imports automatically become one M4B with chapters; existing M4Bs stay unchanged and imported originals are retained. AAC conversion is lossy and needs extra storage.\n\nEmbedded tags and covers come first. Missing metadata and high-resolution covers are matched automatically using Apple Books and Open Library. Only confident matches are applied; your audio is never uploaded for metadata.\n\nYour You page keeps Next, Listening and Finished books separate, with real listening minutes, a seven-day chart and a daily streak recorded on this device. An optional reader name makes it yours without creating an account.\n\nUse chapters, bookmarks, speed, sleep timers, smart rewind, folders and a play queue. Optional iCloud sync keeps your library and playback position across devices.\n\nConnections stay in Settings: browse your own Audiobookshelf or Jellyfin server, or bring Goodreads shelves into an independent in-app session or CSV snapshot. Goodreads is read-only; login and refresh depend on Goodreads.\n\nNo subscription, advertising or supplied audiobook catalogue. Import audio you are authorized to use; DRM-protected files are not supported.",
+  "reviewNotes": "Version 1.0.1 (8) renames the installed app and extensions to sovo.; bundle IDs, iCloud container and App Group remain unchanged so existing libraries are retained. Main tabs are Library, You and Settings. Selecting a book starts playback immediately. Imports automatically convert compatible audio once and retain originals; no post-import conversion control remains. Automatic metadata uses Apple Books with an Open Library fallback; only title/author queries are sent, never audio. You displays local listening stats and library shelves. Optional Goodreads and media servers are in Settings. Goodreads uses an app-owned website session, is read-only, and supports CSV fallback; no official two-way API integration is claimed. Core import/playback requires no login, subscription or payment. Automatic genres use embedded tags and verified provider metadata. Goodreads profile/shelf snapshots can sync through private iCloud, excluding passwords and cookies; disconnect is local and disables that device’s Goodreads sync. AirPods sleep pause uses Apple’s system feature and standard remote pause commands; no HealthKit permissions, pulse collection, custom sleep diagnosis or workout sessions are used.",
+  "supportUrl": "https://github.com/Somamill/listen/blob/main/app-store/SUPPORT.md",
   "privacyPolicyUrl": "https://github.com/Somamill/listen/blob/main/app-store/PRIVACY.md",
   "copyright": "2026 Max Miller"
 }

@@ -126,7 +126,7 @@ struct MediaServerAPI {
       let defaults = UserDefaults.standard
       let deviceID = defaults.string(forKey: "mediaServerDeviceID") ?? UUID().uuidString
       defaults.set(deviceID, forKey: "mediaServerDeviceID")
-      var authorization = "MediaBrowser Client=\"listen.\", Device=\"iOS\", DeviceId=\"\(deviceID)\", Version=\"\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")\""
+      var authorization = "MediaBrowser Client=\"sovo.\", Device=\"iOS\", DeviceId=\"\(deviceID)\", Version=\"\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")\""
       if !token.isEmpty {
         guard !token.contains("\"") && !token.contains("\r") && !token.contains("\n") else { throw ListenError.message("The server token contains invalid characters.") }
         authorization += ", Token=\"\(token)\""
@@ -301,16 +301,7 @@ struct MediaServerAPI {
         urls.append(target)
       }
       let ids = await store.importFiles(
-        urls, combine: true, enrich: false,
-        convert: UserDefaults.standard.bool(forKey: "automaticConversion"))
-      for id in ids {
-        if var book = store.books.first(where: { $0.id == id }) {
-          book.title = item.title
-          if !item.author.isEmpty { book.author = item.author }
-          book.metadataUpdatedAt = Date()
-          store.update(book)
-        }
-      }
+        urls, combine: true, title: item.title, author: item.author)
       status =
         ids.isEmpty
         ? "Download finished, but import needs attention. Check the library message."

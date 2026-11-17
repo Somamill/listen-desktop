@@ -12,6 +12,32 @@ struct ActivitySnapshot: Codable {
   var secondsByDay: [String: Double] = [:]
   var events: [ListeningEvent] = []
 }
+struct ListeningDay: Identifiable {
+  let date: Date
+  let seconds: Double
+  var id: Date { date }
+}
+extension ActivitySnapshot {
+  func recentDays(ending date: Date = Date(), calendar: Calendar = .current) -> [ListeningDay] {
+    (-6...0).compactMap { offset in
+      guard let day = calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: date)) else { return nil }
+      let seconds = secondsByDay[ListeningActivity.dayKey(day)] ?? 0
+      return ListeningDay(date: day, seconds: seconds.isFinite ? max(0, seconds) : 0)
+    }
+  }
+  func currentStreak(ending date: Date = Date(), calendar: Calendar = .current) -> Int {
+    var day = calendar.startOfDay(for: date)
+    if (secondsByDay[ListeningActivity.dayKey(day)] ?? 0) <= 0,
+      let yesterday = calendar.date(byAdding: .day, value: -1, to: day) { day = yesterday }
+    var count = 0
+    while (secondsByDay[ListeningActivity.dayKey(day)] ?? 0) > 0 {
+      count += 1
+      guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+      day = previous
+    }
+    return count
+  }
+}
 @MainActor final class ListeningActivity: ObservableObject {
   @Published private(set) var snapshot: ActivitySnapshot
   private let url: URL
@@ -21,7 +47,7 @@ struct ActivitySnapshot: Codable {
       (try? JSONDecoder().decode(ActivitySnapshot.self, from: Data(contentsOf: url)))
       ?? ActivitySnapshot()
   }
-  static func dayKey(_ date: Date = Date()) -> String {
+  nonisolated static func dayKey(_ date: Date = Date()) -> String {
     let f = DateFormatter()
     f.locale = Locale(identifier: "en_US_POSIX")
     f.calendar = Calendar(identifier: .gregorian)

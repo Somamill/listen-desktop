@@ -4,8 +4,7 @@ struct SettingsView: View {
   @EnvironmentObject var cloud: CloudLibrary
   @EnvironmentObject var player: AudioController
   @EnvironmentObject var goodreads: GoodreadsConnection
-  @AppStorage("automaticMetadata") private var metadata = true
-  @AppStorage("automaticConversion") private var conversion = false
+  @AppStorage("readerName") private var readerName = ""
   @AppStorage("smartRewind") private var rewind = true
   @AppStorage("appearance") private var appearance = "system"
   @State private var disconnect = false
@@ -19,10 +18,13 @@ struct SettingsView: View {
     NavigationStack {
       Form {
         Section("Library & iCloud") {
-          Toggle("Sync books and listening progress", isOn: $cloud.enabled).onChange(
+          Toggle("iCloud sync", isOn: $cloud.enabled).onChange(
             of: cloud.enabled
           ) { _, _ in Task { await cloud.sync() } }
           Text(cloud.status).font(.footnote).foregroundStyle(.secondary)
+          Toggle("Sync Goodreads shelves with iCloud", isOn: $goodreads.syncEnabled).disabled(!cloud.enabled)
+          Text("Shares your Goodreads profile link and saved shelves between your devices. Passwords and website sessions stay on each device; signing in again may be needed.")
+            .font(.footnote).foregroundStyle(.secondary)
           Button("Sync now", systemImage: "arrow.triangle.2.circlepath") {
             Task { await cloud.sync() }
           }.disabled(cloud.syncing || !cloud.enabled)
@@ -30,15 +32,23 @@ struct SettingsView: View {
             "Books download before playback and remain available offline. Signed builds need an enabled iCloud container. This app’s iCloud library is separate from your Mac’s existing audiobook folder; use Files to import from it."
           ).font(.footnote).foregroundStyle(.secondary)
         }
-        Section("Imports & metadata") {
-          Toggle("Find metadata and covers automatically", isOn: $metadata)
-          Text(
-            "Uses embedded tags first, then sends the title and known author to Apple Books Search. Audio is never uploaded for metadata. Only confident title/author matches are applied."
-          ).font(.footnote).foregroundStyle(.secondary)
-          Toggle("Convert imported MP3 books to M4B", isOn: $conversion)
-          Text(
-            "Conversion produces AAC audio with chapter markers. MP3-to-AAC is lossy and needs extra storage. Original imported files are kept. Leave off to play MP3 directly, or convert any book later."
-          ).font(.footnote).foregroundStyle(.secondary)
+        Section("Your library") {
+          Text("New imports automatically find metadata and covers, then create one M4B audiobook when conversion is needed. Existing M4B files are not converted again.")
+          Text("Embedded tags and covers come first. Missing details are matched against Apple Books and Open Library using the title and author; audio is never uploaded. Original audio stays on your device. AAC conversion is lossy and needs extra storage.")
+            .font(.footnote).foregroundStyle(.secondary)
+        }
+        Section("You") {
+          TextField("Your name (optional)", text: $readerName).textContentType(.nickname)
+          Text("Only used for your reading page on this device. No account is created.")
+            .font(.footnote).foregroundStyle(.secondary)
+        }
+        Section("Connections") {
+          NavigationLink { MediaServersView() } label: {
+            Label("Media servers", systemImage: "externaldrive")
+          }.accessibilityIdentifier("mediaServersSettings")
+          NavigationLink { GoodreadsView() } label: {
+            Label("Goodreads", systemImage: "book.closed")
+          }.accessibilityIdentifier("goodreadsSettings")
         }
         Section("Playback") {
           Toggle("Smart rewind after a pause", isOn: $rewind)
@@ -65,6 +75,11 @@ struct SettingsView: View {
             "Smart rewind increases with the length of a pause. Speed, sleep timer, chapters, bookmarks, and AirPlay are in the player."
           ).font(.footnote).foregroundStyle(.secondary)
         }
+        Section("Sleep") {
+          NavigationLink { AirPodsSleepHelp() } label: {
+            Label("Pause when you fall asleep", systemImage: "moon.zzz")
+          }.accessibilityIdentifier("airPodsSleepHelp")
+        }
         Section("Appearance") {
           Picker("Appearance", selection: $appearance) {
             Text("Follow system").tag("system")
@@ -79,7 +94,7 @@ struct SettingsView: View {
           Button("Disconnect Goodreads", role: .destructive) { disconnect = true }.disabled(
             goodreads.books.isEmpty && goodreads.profileID == nil)
         }
-        Section("About listen.") {
+        Section("About sovo.") {
           LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
           Text("Part of dot.").font(.headline)
           Text("A quieter way to read, listen, and learn.").foregroundStyle(.secondary)

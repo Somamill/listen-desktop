@@ -5,6 +5,7 @@ import Foundation
 @MainActor final class LibraryStore: ObservableObject {
   @Published var books: [AudioBook] = []
   @Published var busy = false
+  @Published var processingBookID: UUID?
   @Published var activity = ""
   @Published var waitingImports = 0
   @Published var error: String?
@@ -23,6 +24,7 @@ import Foundation
       try FileManager.default.createDirectory(at: self.root, withIntermediateDirectories: true)
       let data = try Data(contentsOf: self.root.appendingPathComponent("index.json"))
       books = try JSONDecoder().decode([AudioBook].self, from: data)
+      for index in books.indices { books[index].ensureBasicMetadata() }
     } catch CocoaError.fileReadNoSuchFile {} catch {
       self.error =
         "The saved library could not be read. Files have been retained. \(error.localizedDescription)"
@@ -44,6 +46,7 @@ import Foundation
   func update(_ book: AudioBook) {
     guard let i = books.firstIndex(where: { $0.id == book.id }) else { return }
     books[i] = book
+    books[i].ensureBasicMetadata()
     save()
   }
   func position(_ id: UUID, seconds: Double, finished: Bool? = nil) {
@@ -55,7 +58,8 @@ import Foundation
     save()
   }
   @discardableResult func importFiles(
-    _ urls: [URL], combine: Bool = true, enrich: Bool = true, convert: Bool = false
+    _ urls: [URL], combine: Bool = true, enrich: Bool = true, convert: Bool = true,
+    title: String? = nil, author: String? = nil
   ) async -> [UUID] {
     let scope = urls.map { ($0, $0.startAccessingSecurityScopedResource()) }
     defer { for (url, active) in scope where active { url.stopAccessingSecurityScopedResource() } }
@@ -70,8 +74,11 @@ import Foundation
     busy = true
     defer {
       busy = false
+      processingBookID = nil
       activity = ""
     }
+    notice = nil
+    var warnings: [String] = []
     var created: [UUID] = []
     var expandedRoots: [URL] = []
     defer { for root in expandedRoots { try? FileManager.default.removeItem(at: root) } }
@@ -136,55 +143,60 @@ import Foundation
       for group in groups {
         activity = "Importing \(group.first!.deletingPathExtension().lastPathComponent)…"
         var book = try await Importer.copy(group, into: root)
-        // Commit a playable local book before optional network work or conversion.
+        // Server catalogue identity must precede online lookup and M4B tagging.
+        if let title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { book.title = title }
+        if let author, !author.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { book.author = author }
+        processingBookID = book.id
+        // Persist originals before optional work so an interrupted import remains recoverable.
         books.insert(book, at: 0)
         save()
-        imported.append(book)
-        created.append(book.id)
         if enrich {
           activity = "Looking up book details…"
           do {
             book = try await MetadataService.enrich(book, directory: directory(book))
-            update(book)
           } catch {
-            notice =
-              "The audio was imported. Online metadata was unavailable; embedded details were kept."
+            warnings.append(
+              "Online metadata was unavailable for \(book.title); embedded details were kept.")
           }
         }
-        if convert && book.tracks.contains(where: { $0.filename.lowercased().hasSuffix(".mp3") }) {
+        if enrich { book.metadataLookupAt = Date() }
+        if convert && book.needsM4BConversion {
           activity = "Converting to M4B…"
           do {
             book = try await M4BConverter.convert(book, directory: directory(book))
-            update(book)
           } catch {
-            notice =
-              "Imported the original audio. M4B conversion did not finish: \(error.localizedDescription)"
+            warnings.append(
+              "Imported the original audio. M4B conversion did not finish: \(error.localizedDescription)")
           }
         }
+        update(book)
+        processingBookID = nil
+        imported.append(book)
+        created.append(book.id)
       }
-      notice = "Imported \(imported.count) audiobook\(imported.count == 1 ? "" : "s")."
+      notice = (["Imported \(imported.count) audiobook\(imported.count == 1 ? "" : "s")."] + warnings).joined(separator: " ")
     } catch { self.error = error.localizedDescription }
     return created
   }
-  func convert(_ book: AudioBook) async {
+  func refreshMissingMetadata() async {
     guard !busy else { return }
     busy = true
-    activity = "Converting to M4B…"
-    defer {
-      busy = false
-      activity = ""
-    }
-    do {
-      update(try await M4BConverter.convert(book, directory: directory(book)))
-      notice = "M4B created. Original imported files are retained in the library."
-    } catch { self.error = error.localizedDescription }
-  }
-  func enrich(_ book: AudioBook) async {
-    guard !busy else { return }
-    busy = true
-    defer { busy = false }
-    do { update(try await MetadataService.enrich(book, directory: directory(book))) } catch {
-      self.error = error.localizedDescription
+    defer { busy = false; activity = "" }
+    for original in books where MetadataService.needsEnrichment(original, directory: directory(original))
+      && Date().timeIntervalSince(original.metadataLookupAt ?? .distantPast) > 86_400 {
+      guard !Task.isCancelled, waitingImports == 0 else { return }
+      activity = "Completing book details and genres…"
+      let enriched = try? await MetadataService.enrich(original, directory: directory(original))
+      guard let index = books.firstIndex(where: { $0.id == original.id }) else { continue }
+      // Playback or manual edits may have changed the book while the network request ran.
+      if let enriched {
+        if books[index].author == original.author { books[index].author = enriched.author }
+        if books[index].genre == original.genre { books[index].genre = enriched.genre }
+        if books[index].coverFilename == original.coverFilename { books[index].coverFilename = enriched.coverFilename }
+        books[index].metadataUpdatedAt = Date()
+      }
+      books[index].metadataLookupAt = Date()
+      save()
     }
   }
   func remove(_ book: AudioBook) {

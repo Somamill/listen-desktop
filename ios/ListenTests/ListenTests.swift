@@ -1,4 +1,5 @@
 import AVFoundation
+import UIKit
 import XCTest
 
 @testable import Listen
@@ -62,6 +63,171 @@ import XCTest
     XCTAssertFalse(CloudLibrary.safeFilename("../book.mp3"))
     XCTAssertFalse(CloudLibrary.safeFilename("a/b.mp3"))
   }
+  func testGoodreadsRefreshDoesNotInterruptVisibleConnection() {
+    let connection = GoodreadsConnection()
+    connection.profileID = "123"
+    connection.showSignIn = true
+    let status = connection.status
+    connection.refresh()
+    XCTAssertFalse(connection.refreshing)
+    XCTAssertEqual(connection.status, status)
+  }
+  func testMetadataPrefersMatchingAuthorAndRejectsAmbiguousTitles() {
+    let wrong = MetadataService.Candidate(title: "Home", author: "Other Writer", cover: nil)
+    let correct = MetadataService.Candidate(title: "Home (Unabridged)", author: "Toni Morrison", cover: nil)
+    var book = AudioBook(title: "Home", author: "Toni Morrison")
+    XCTAssertEqual(MetadataService.bestMatch([wrong, correct], for: book)?.author, "Toni Morrison")
+    book.author = "Unknown author"
+    XCTAssertNil(MetadataService.bestMatch([wrong, correct], for: book))
+    XCTAssertNil(MetadataService.bestMatch([.init(title: "Home", author: "", cover: nil)], for: book))
+    XCTAssertEqual(MetadataService.confidence("Der Vorleser – Hörbuch, ungekürzt", "Der Vorleser"), 1)
+  }
+  func testMetadataFallsBackToOpenLibraryAndStoresLargeCover() async throws {
+    let image = UIGraphicsImageRenderer(size: CGSize(width: 316, height: 500)).jpegData(withCompressionQuality: 0.9) { context in
+      UIColor.green.setFill(); context.fill(CGRect(x: 0, y: 0, width: 316, height: 500))
+    }
+    MetadataURLProtocol.responses = [
+      "itunes.apple.com": Data(#"{"results":[{"collectionName":"Home","artistName":"Wrong Writer"}]}"#.utf8),
+      "openlibrary.org": Data(#"{"docs":[{"title":"Home","author_name":["Toni Morrison"],"cover_i":123,"subject":["Fiction"]}]}"#.utf8),
+      "covers.openlibrary.org": image
+    ]
+    let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [MetadataURLProtocol.self]
+    let session = URLSession(configuration: config); defer { session.invalidateAndCancel() }
+    let book = AudioBook(title: "Home", author: "Toni Morrison")
+    let enriched = try await MetadataService.enrich(book, directory: root, session: session)
+    XCTAssertEqual(enriched.author, "Toni Morrison")
+    XCTAssertEqual(enriched.coverFilename, "cover.jpg")
+    let cover = try XCTUnwrap(UIImage(contentsOfFile: root.appendingPathComponent("cover.jpg").path))
+    XCTAssertGreaterThanOrEqual(cover.size.width, 316)
+    // Existing tags and artwork are authoritative; no lookup should be needed.
+    MetadataURLProtocol.responses = [:]
+    let preserved = try await MetadataService.enrich(enriched, directory: root, session: session)
+    XCTAssertEqual(preserved, enriched)
+  }
+  func testReadingWeekAndStreakUseRecordedTimeWithoutInventedDays() {
+    let calendar = Calendar.current
+    let today = calendar.startOfDay(for: Date())
+    let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+    let earlier = calendar.date(byAdding: .day, value: -2, to: today)!
+    var snapshot = ActivitySnapshot()
+    snapshot.secondsByDay = [ListeningActivity.dayKey(yesterday): 120, ListeningActivity.dayKey(earlier): 60]
+    XCTAssertEqual(snapshot.currentStreak(ending: today), 2)
+    XCTAssertEqual(snapshot.recentDays(ending: today).count, 7)
+    XCTAssertEqual(snapshot.recentDays(ending: today).reduce(0) { $0 + $1.seconds }, 180)
+    snapshot.secondsByDay[ListeningActivity.dayKey(today)] = 30
+    XCTAssertEqual(snapshot.currentStreak(ending: today), 3)
+    XCTAssertEqual(ActivitySnapshot().currentStreak(ending: today), 0)
+  }
+  func testExistingLibraryDecodesWithoutMetadataLookupDate() throws {
+    let data = try JSONEncoder().encode(AudioBook(title: "Existing book"))
+    var object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    object.removeValue(forKey: "metadataLookupAt")
+    let decoded = try JSONDecoder().decode(AudioBook.self, from: JSONSerialization.data(withJSONObject: object))
+    XCTAssertNil(decoded.metadataLookupAt)
+    XCTAssertEqual(decoded.title, "Existing book")
+  }
+  func testEveryRecordHasBasicMetadataWithoutInventingBibliographicFacts() {
+    var book = AudioBook(title: " ", author: "", tracks: [.init(filename: "0001-My Book.mp3", duration: 10)])
+    book.ensureBasicMetadata()
+    XCTAssertEqual(book.title, "My Book")
+    XCTAssertEqual(book.author, "Unknown author")
+    XCTAssertEqual(book.genre, "Uncategorized")
+    var empty = AudioBook(title: "")
+    empty.ensureBasicMetadata()
+    XCTAssertEqual(empty.title, "Untitled audiobook")
+  }
+  func testLegacyCloudMetadataKeepsGenreAndNewestProgress() {
+    var book = AudioBook(title: "Known book", author: "An Author", genre: "Fantasy")
+    book.metadataUpdatedAt = Date(timeIntervalSince1970: 10)
+    book.metadataLookupAt = Date(timeIntervalSince1970: 9)
+    var legacy = book
+    legacy.genre = nil; legacy.metadataLookupAt = nil
+    legacy.metadataUpdatedAt = Date(timeIntervalSince1970: 11)
+    legacy.state = ListeningState(position: 20, updatedAt: Date(timeIntervalSince1970: 12))
+    book.merge(legacy)
+    XCTAssertEqual(book.genre, "Fantasy")
+    XCTAssertEqual(book.state.position, 20)
+    XCTAssertEqual(book.metadataLookupAt, Date(timeIntervalSince1970: 9))
+  }
+  func testServerMetadataPrecedesAutomaticConversion() async throws {
+    let store = LibraryStore(root: root.appendingPathComponent("server-metadata"))
+    await store.importFiles([try sample()], enrich: false, title: "Server book title", author: "A Known Writer")
+    let book = try XCTUnwrap(store.books.first)
+    XCTAssertEqual(book.title, "Server book title")
+    XCTAssertEqual(book.author, "A Known Writer")
+    let asset = AVURLAsset(url: store.file(book, try XCTUnwrap(book.tracks.first)))
+    let metadata = try await asset.load(.commonMetadata)
+    let title = try await AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: .commonIdentifierTitle).first?.load(.stringValue)
+    XCTAssertEqual(title, "Server book title")
+  }
+  func testGenreClassificationAndInitialledAuthors() {
+    XCTAssertEqual(BookGenre.classify(["Fiction", "Fantasy fiction"]), .fantasy)
+    XCTAssertEqual(BookGenre.classify(["Non Fiction", "Sachbücher"]), .nonfiction)
+    XCTAssertEqual(BookGenre.classify(["Science Fiction"]), .scienceFiction)
+    XCTAssertEqual(BookGenre.classify(["Biographies & Memoirs"]), .biography)
+    XCTAssertEqual(BookGenre.classify(["Kriminalroman"]), .crime)
+    XCTAssertEqual(BookGenre.classify(["Audiobooks", "Books"]), .uncategorized)
+    XCTAssertTrue(MetadataService.authorMatches("JRR Tolkien", "J. R. R. Tolkien"))
+    XCTAssertFalse(MetadataService.authorMatches("John Smith", "Jane Smith"))
+    XCTAssertEqual(AudioBook(title: "A book").genreLabel, "Uncategorized")
+  }
+  func testGoodreadsSnapshotValidationAndConflictOrder() throws {
+    let a = GoodreadsCloudSnapshot(profileID: "123", books: [], updatedAt: Date(timeIntervalSince1970: 10), deviceID: "00000000-0000-0000-0000-000000000001")
+    let b = GoodreadsCloudSnapshot(profileID: "123", books: [], updatedAt: a.updatedAt, deviceID: "00000000-0000-0000-0000-000000000002")
+    XCTAssertTrue(a.valid); XCTAssertTrue(b.newer(than: a)); XCTAssertFalse(a.newer(than: b))
+    let invalid = GoodreadsCloudSnapshot(profileID: "../private", books: [], updatedAt: Date(), deviceID: a.deviceID)
+    XCTAssertFalse(invalid.valid)
+    let restored = try JSONDecoder().decode(GoodreadsCloudSnapshot.self, from: JSONEncoder().encode(a))
+    XCTAssertEqual(restored, a)
+  }
+  func testGoodreadsCloudRoundTripPreservesRevisionAndLocalDisconnect() async throws {
+    let defaults = UserDefaults.standard
+    let oldDevice = defaults.object(forKey: "deviceID"), oldSync = defaults.object(forKey: "goodreadsCloudSync"), oldProfile = defaults.object(forKey: "goodreadsProfileID")
+    defer {
+      defaults.set(oldDevice, forKey: "deviceID"); defaults.set(oldSync, forKey: "goodreadsCloudSync"); defaults.set(oldProfile, forKey: "goodreadsProfileID")
+    }
+    defaults.set(true, forKey: "goodreadsCloudSync")
+    defaults.set(UUID().uuidString, forKey: "deviceID")
+    let a = GoodreadsConnection(root: root.appendingPathComponent("reader-a"))
+    let csv = root.appendingPathComponent("shelves.csv")
+    try "Book Id,Title,Author,Exclusive Shelf\n1,Original tutorial,An Author,to-read\n".write(to: csv, atomically: true, encoding: .utf8)
+    a.importCSV(csv)
+    let cloudA = CloudLibrary(store: LibraryStore(root: root.appendingPathComponent("library-a"))); cloudA.enabled = false; cloudA.goodreads = a
+    let shared = root.appendingPathComponent("fake-private-cloud")
+    try await cloudA.syncGoodreads(at: shared)
+    defaults.set(UUID().uuidString, forKey: "deviceID")
+    let b = GoodreadsConnection(root: root.appendingPathComponent("reader-b"))
+    let cloudB = CloudLibrary(store: LibraryStore(root: root.appendingPathComponent("library-b"))); cloudB.enabled = false; cloudB.goodreads = b
+    try await cloudB.syncGoodreads(at: shared)
+    XCTAssertEqual(b.books, a.books)
+    XCTAssertEqual(b.cloudSnapshot.deviceID, a.cloudSnapshot.deviceID)
+    let data = try Data(contentsOf: shared.appendingPathComponent(b.deviceID + ".json"))
+    let keys = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any]).keys
+    XCTAssertTrue(Set(keys).isSubset(of: ["profileID", "books", "updatedAt", "deviceID"]))
+    b.disconnect()
+    try await cloudB.syncGoodreads(at: shared)
+    try await cloudA.syncGoodreads(at: shared)
+    XCTAssertEqual(a.books.count, 1)
+    XCTAssertTrue(b.books.isEmpty)
+    XCTAssertFalse(b.syncEnabled)
+  }
+  func testSystemPauseDoesNotRestartQueuedBookOnLateCompletion() async throws {
+    let store = LibraryStore(root: root.appendingPathComponent("sleep-pause"))
+    await store.importFiles([try sample(), try sample()], combine: false, enrich: false, convert: false)
+    let first = try XCTUnwrap(store.books.first)
+    let second = try XCTUnwrap(store.books.last)
+    let cloud = CloudLibrary(store: store); cloud.enabled = false
+    let player = AudioController(store: store, cloud: cloud)
+    await player.open(first)
+    player.enqueue(second.id)
+    let item = try XCTUnwrap(player.player?.currentItem)
+    player.pause()
+    NotificationCenter.default.post(name: .AVPlayerItemDidPlayToEndTime, object: item)
+    try await Task.sleep(for: .milliseconds(100))
+    XCTAssertFalse(player.playing)
+    XCTAssertEqual(player.bookID, first.id)
+    XCTAssertEqual(player.queue, [second.id])
+  }
   func testChapterAtomPatchesFastStartChunkOffsets() throws {
     let entry = MP4Chapters.bytes(4, count: 4) + Data([0, 0, 0, 0])
     let stco = try MP4Chapters.atom(
@@ -91,12 +257,15 @@ import XCTest
     let second = root.appendingPathComponent("02.mp3")
     try FileManager.default.copyItem(at: source, to: first)
     try FileManager.default.copyItem(at: source, to: second)
-    let book = try await Importer.copy([first, second], into: root)
+    var book = try await Importer.copy([first, second], into: root)
+    book.genre = "Fantasy"
     XCTAssertEqual(book.tracks.count, 2)
     XCTAssertEqual(book.chapters.count, 2)
     XCTAssertGreaterThan(book.duration, 23)
     let directory = root.appendingPathComponent(book.id.uuidString)
     let result = try await M4BConverter.convert(book, directory: directory)
+    let secondConversion = try await M4BConverter.convert(result, directory: directory)
+    XCTAssertEqual(secondConversion, result)
     XCTAssertEqual(result.tracks.count, 1)
     XCTAssertTrue(result.tracks[0].filename.hasSuffix(".m4b"))
     XCTAssertEqual(result.chapters.count, 2)
@@ -115,6 +284,7 @@ import XCTest
     XCTAssertEqual(readChapters[1].start, book.chapters[1].start, accuracy: 0.01)
     let reimported = try await Importer.copy([output], into: root)
     XCTAssertEqual(reimported.chapters.count, 2)
+    XCTAssertEqual(reimported.genreLabel, "Fantasy")
     let evidence = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
       .appendingPathComponent("verified-conversion.m4b")
     try? FileManager.default.removeItem(at: evidence)
@@ -137,7 +307,8 @@ import XCTest
     let store = LibraryStore(root: root.appendingPathComponent("Books"))
     await store.importFiles([inbox], combine: true, enrich: false)
     XCTAssertEqual(store.books.count, 2)
-    XCTAssertEqual(store.books.map { $0.tracks.count }.sorted(), [1, 2])
+    XCTAssertEqual(store.books.map { $0.chapters.count }.sorted(), [1, 2])
+    XCTAssertTrue(store.books.allSatisfy { $0.tracks.count == 1 && $0.tracks[0].filename.hasSuffix(".m4b") }, store.notice ?? "No import notice")
     XCTAssertNil(store.error)
   }
 
@@ -177,4 +348,19 @@ import XCTest
     XCTAssertEqual(reopened.books.first?.bookmarks.filter { $0.kind == nil }.count, 1)
     XCTAssertGreaterThan(reopened.books.first?.state.position ?? 0, 0)
   }
+}
+
+private final class MetadataURLProtocol: URLProtocol {
+  static var responses: [String: Data] = [:]
+  override class func canInit(with request: URLRequest) -> Bool { true }
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+  override func startLoading() {
+    guard let url = request.url, let data = Self.responses[url.host ?? ""] else {
+      client?.urlProtocol(self, didFailWithError: URLError(.resourceUnavailable)); return
+    }
+    client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!, cacheStoragePolicy: .notAllowed)
+    client?.urlProtocol(self, didLoad: data)
+    client?.urlProtocolDidFinishLoading(self)
+  }
+  override func stopLoading() { }
 }

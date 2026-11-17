@@ -284,7 +284,8 @@ import UIKit
   }
   func skip(_ interval: Double) { seek(position + interval) }
   private func ended() {
-    guard let book else { return }
+    // A queued end notification must not restart audio after a system or sleep pause.
+    guard playing, let book else { return }
     if index + 1 < book.tracks.count {
       loadTrack(at: book.offset(for: index + 1), autoplay: true)
     } else {

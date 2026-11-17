@@ -29,6 +29,12 @@ struct Importer {
                 guard duration.isFinite && duration > 0 else { throw ListenError.message("The audio duration could not be read: \(source.lastPathComponent)") }
                 let metadata = try await asset.load(.commonMetadata)
                 if index == 0 {
+                    let allMetadata = (try? await asset.load(.metadata)) ?? []
+                    for identifier in [AVMetadataIdentifier.iTunesMetadataUserGenre, .id3MetadataContentType, .quickTimeMetadataGenre] {
+                        if let value = try? await AVMetadataItem.metadataItems(from: allMetadata, filteredByIdentifier: identifier).first?.load(.stringValue), BookGenre.classify([value]) != .uncategorized {
+                            book.genre = BookGenre.classify([value]).rawValue; break
+                        }
+                    }
                     let album = try await AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: .commonIdentifierAlbumName).first?.load(.stringValue)
                     let title = try await AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: .commonIdentifierTitle).first?.load(.stringValue)
                     book.title = sources.count > 1 ? (album ?? source.deletingLastPathComponent().lastPathComponent) : (title ?? book.title)
@@ -50,6 +56,7 @@ struct Importer {
                 }
                 book.tracks.append(AudioTrack(filename: filename, duration: duration)); elapsed += duration
             }
+            book.ensureBasicMetadata(fallbackTitle: sources[0].deletingPathExtension().lastPathComponent)
             return book
         } catch { try? FileManager.default.removeItem(at: directory); throw error }
     }

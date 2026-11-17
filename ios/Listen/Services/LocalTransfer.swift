@@ -205,7 +205,7 @@ private final class UploadConnection {
       }
     }
     guard headers["authorization"] == "Bearer " + token else {
-      reply(401, "Open the complete transfer link from listen.")
+      reply(401, "Open the complete transfer link from sovo.")
       return false
     }
     guard method == "PUT", path.hasPrefix("/upload/"),
@@ -283,12 +283,12 @@ private final class UploadConnection {
       completion: .contentProcessed { [connection] _ in connection.cancel() })
   }
   static let html = #"""
-    <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Transfer to listen.</title><meta name="description" content="Transfer your audio and ZIP files directly to listen. over trusted local Wi-Fi.">
-    <style>/* Hallmark: listen. local-transfer utility; native system typography and sage/forest palette. */
+    <!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Transfer to sovo.</title><meta name="description" content="Transfer your audio and ZIP files directly to sovo. over trusted local Wi-Fi.">
+    <style>/* Hallmark: sovo. local-transfer utility; native system typography and sage/forest palette. */
     /* Critique: one task, no marketing sections; flexible file inputs preserve 320px layout. */
     html,body{overflow-x:clip}
     :root{color-scheme:light dark;font-family:system-ui;--accent:#42684b;--paper:#faf8f4;--ink:#151815}*{box-sizing:border-box}body{color:var(--ink);background:var(--paper);max-width:65ch;margin:clamp(1rem,8vh,4rem) auto;padding:1.5rem;line-height:1.6;scrollbar-color:var(--accent) var(--paper)}h1{text-wrap:balance;font-size:2rem;line-height:1.2;margin-bottom:1.5rem}input{font:inherit;min-height:44px;width:100%;min-width:0;display:block;accent-color:var(--accent);caret-color:var(--accent)}input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}input:disabled{background:color-mix(in srgb,var(--ink) 12%,var(--paper));color:var(--ink);cursor:wait}input::file-selector-button{min-height:44px;padding:.5rem .75rem;border:1px solid var(--accent);border-radius:8px;color:var(--ink);background:var(--paper)}input::file-selector-button:active{background:var(--accent);color:var(--paper)}li{margin:1rem 0;font-variant-numeric:tabular-nums}::selection{background:var(--accent);color:var(--paper)}@media(prefers-color-scheme:dark){:root{--accent:#a9c7ae;--paper:#151815;--ink:#faf8f4}}</style>
-    <h1>Transfer to listen.</h1><p>Choose audio files or a folder. Keep the transfer screen open on your device, then confirm the import there.</p>
+    <h1>Transfer to sovo.</h1><p>Choose audio files or a folder. Keep the transfer screen open on your device, then confirm the import there.</p>
     <label>Audio or ZIP files <input id="files" type="file" multiple></label><p><label>A folder <input id="folder" type="file" webkitdirectory multiple></label></p><ul id="results" aria-live="polite" aria-label="Transfer results"></ul>
     <script>const token=location.hash.slice(1);for(const input of document.querySelectorAll('input'))input.onchange=async()=>{input.disabled=true;for(const file of input.files){const row=document.createElement('li');row.textContent=file.name+' — uploading';document.querySelector('#results').append(row);try{const name=file.webkitRelativePath||file.name;const r=await fetch('/upload/'+name.split('/').map(encodeURIComponent).join('/'),{method:'PUT',headers:{Authorization:'Bearer '+token},body:file});row.textContent=file.name+' — '+(r.ok?'received':await r.text())}catch{row.textContent=file.name+' — connection interrupted; keep the original and retry'}}input.disabled=false};</script></html>
     """#

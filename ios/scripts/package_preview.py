@@ -24,12 +24,12 @@ with zipfile.ZipFile(simulator, 'w', zipfile.ZIP_DEFLATED) as archive:
     for path in sorted(app.rglob('*')):
         relative = path.relative_to(app)
         if path.is_file() and not any(part.endswith('.xctest') for part in relative.parts):
-            archive.write(path, 'Listen.app/' + relative.as_posix())
+            archive.write(path, 'sovo.app/' + relative.as_posix())
 for path in [source, simulator]:
     with zipfile.ZipFile(path) as archive:
         if archive.testzip() is not None:
             raise SystemExit('Archive integrity failed: ' + path.name)
-notes = f'''listen. mobile {version} — developer preview
+notes = f'''sovo. mobile {version} — developer preview
 
 Source: {source.name}
 Open listen-ios/ios/Listen.xcodeproj with Xcode. Setup, capability requirements,
@@ -38,7 +38,7 @@ REA comparison and validation are in listen-ios/ios/README.md and ios/docs/.
 Simulator: {simulator.name}
 For an Apple Silicon Mac with a compatible iOS Simulator runtime only.
 Unzip, start one iPhone/iPad Simulator, then run:
-  xcrun simctl install booted Listen.app
+  xcrun simctl install booted sovo.app
   xcrun simctl launch booted {info['CFBundleIdentifier']}
 
 This is not an IPA and cannot be installed directly on a real iPhone or iPad.

@@ -23,7 +23,7 @@ struct ListeningWidgetView: View {
   var entry: ListeningEntry
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Label("listen.", systemImage: "headphones").font(.caption.weight(.semibold))
+      Label("sovo.", systemImage: "headphones").font(.caption.weight(.semibold))
       if let book = entry.snapshot {
         Text(book.title).font(.headline).lineLimit(2)
         Text(book.author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -31,7 +31,7 @@ struct ListeningWidgetView: View {
         Label("Continue listening", systemImage: "play.fill").font(.caption)
       } else {
         Text("Your next chapter.").font(.headline)
-        Text("Open listen. and choose a book.").font(.caption).foregroundStyle(.secondary)
+        Text("Open sovo. and choose a book.").font(.caption).foregroundStyle(.secondary)
       }
     }.containerBackground(.fill.tertiary, for: .widget)
       .widgetURL(

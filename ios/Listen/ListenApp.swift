@@ -30,7 +30,10 @@ import SwiftUI
     _player = StateObject(wrappedValue: audio)
     MobileCompanionBridge.store = library
     MobileCompanionBridge.player = audio
-    _goodreads = StateObject(wrappedValue: GoodreadsConnection())
+    let reading = GoodreadsConnection()
+    sync.goodreads = reading
+    reading.onChange = { [weak sync] in sync?.schedule() }
+    _goodreads = StateObject(wrappedValue: reading)
     _servers = StateObject(wrappedValue: ServerLibrary(root: library.root))
     _transfer = StateObject(wrappedValue: LocalTransfer())
     if testing, let sample = Bundle.main.url(forResource: "Sample", withExtension: "mp3") {
@@ -44,7 +47,13 @@ import SwiftUI
         .tint(ListenTheme.accent).preferredColorScheme(
           appearance == "system" ? nil : appearance == "dark" ? .dark : .light
         )
-        .task { await cloud.sync() }
+        .task {
+          await cloud.sync()
+          #if DEBUG
+          if ProcessInfo.processInfo.arguments.contains("--uitesting") { return }
+          #endif
+          await store.refreshMissingMetadata()
+        }
         .onChange(of: phase) { _, next in
           if next == .active {
             Task {
@@ -54,6 +63,10 @@ import SwiftUI
                 UserDefaults.standard.set(false, forKey: "intentContinue")
                 await MobileCompanionBridge.open()
               }
+              #if DEBUG
+              if ProcessInfo.processInfo.arguments.contains("--uitesting") { return }
+              #endif
+              await store.refreshMissingMetadata()
             }
             if goodreads.profileID != nil { goodreads.refresh() }
           } else {
@@ -72,7 +85,7 @@ import SwiftUI
             Task {
               await store.importFiles(
                 [url],
-                enrich: UserDefaults.standard.object(forKey: "automaticMetadata") as? Bool ?? true)
+                enrich: true)
             }
           }
         }

@@ -1,3 +1,33 @@
+# Metadata, genres, Goodreads iCloud and AirPods sleep pause — 18 November 2026
+
+Fresh practical checks on 18 November: Apple Books DE/US returned matching metadata and 1200×1200 / 1169×1200 covers for two public test titles; Open Library returned the matching German title, author, subjects and cover identifier. The owner's existing Chrome Developer tab confirmed the main app's App Group and selected iCloud container are already enabled, so no capability changes were needed. App Store Connect website authentication has expired; API access still confirms iOS 1.0.0 is released, macOS 1.0.0 is in review and iOS 1.0.1 is a draft. A live Goodreads shelf request returned a sign-in page, not shelf data. The physical iPhone is currently unavailable to devicectl and Mirroring timed out; these checks do not certify authenticated Goodreads, cross-device cloud transfer or actual AirPods sleep detection for build 8.
+
+The unsigned physical-iOS Release archive for 1.0.1 (8) was also built successfully and passed the bundle validator. It is not signed, uploaded or installed on a physical device.
+
+Local 1.0.1 (8) candidate extended with metadata fallbacks and automatic genres, library genre shelves, M4B genre tags and server identity before conversion. Goodreads profile and cached shelves can sync through the existing private iCloud container; authentication stays per device. Legacy clients cannot erase a known genre during a metadata merge. Local disconnect disables that device’s Goodreads sync without deleting remote snapshots.
+
+AirPods sleep pause uses Apple’s system feature and existing media pause commands, with a setup guide in Settings/the sleep menu. No HealthKit permissions, live pulse collection, workout sessions or custom sleep classifier were added. A late playback-end event cannot restart queued audio after a pause.
+
+Validation: 30 unit tests passed, plus the targeted server conversion test (31 distinct cases); genre/setup and direct-book/player/navigation UI scenarios passed. iOS simulator and universal Mac builds and bundle checks pass. Physical AirPods detection, signed cross-device iCloud and authenticated Goodreads still need device QA. UI layout uses native controls; native screenshot review and the scoped Impeccable regex scan were used, not browser validation.
+
+This update remains local and unsubmitted. GitHub Actions remain disabled. Genre organization is virtual shelves, with no extra audio copies. Unmatched authors/genres remain explicitly unknown rather than invented. Setup and data handling are documented in SUPPORT.md and PRIVACY.md.
+
+---
+
+# sovo. 1.0.1 update candidate
+
+17 November 2026. Version 1.0.1 (8) is being validated locally and has not been uploaded or submitted. The installed app, widgets, share extension and Siri labels use sovo. Existing bundle, cloud, keychain and App Group identifiers are preserved.
+
+Changes: tap-to-play; automatic single-pass M4B import; automatic Apple Books/Open Library metadata and covers; a personal You page with actual shelves/listening stats; Goodreads and media servers under Settings; Goodreads browsing stays in its in-app session. Goodreads remains read-only and provider-dependent, not an official full-sync API.
+
+Local checks: 24 unit tests passed, with targeted reruns passing after the final metadata changes. Final UI regressions passed for tap-to-play/player/bookmarks, server Settings navigation, and all three tabs with the mini-player. The personal reading page and in-app Goodreads window also passed a separate screen test. Universal Mac Release build (arm64/x86_64) and both platform bundle checks pass. Native screenshots were reviewed; the Impeccable regex scan reported no findings, which does not replace native UI validation.
+
+Live Apple Books DE/Open Library lookups and cover downloads worked for an identified public test title. Authenticated Goodreads and fresh physical iPhone/iPad QA remain unverified for build 8. Goodreads remains read-only and provider-dependent.
+
+GitHub Actions remain disabled by owner instruction. No upload, TestFlight distribution or App Store submission was performed for this update. The existing iOS 1.0.0 version is released; its historical submission notes below predate that approval.
+
+---
+
 # App Store release candidate
 
 Updated 16 November 2026. Store listing: **sovo.**; installed app and in-app name: **listen.**

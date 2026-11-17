@@ -49,15 +49,15 @@ import WidgetKit
         .filter { Importer.supported($0) || $0.pathExtension.lowercased() == "zip" } ?? []
       guard !files.isEmpty else { continue }
       let ids = await store.importFiles(
-        files, enrich: UserDefaults.standard.object(forKey: "automaticMetadata") as? Bool ?? true,
-        convert: UserDefaults.standard.bool(forKey: "automaticConversion"))
+        files, enrich: true,
+        convert: true)
       if !ids.isEmpty && store.error == nil { try? FileManager.default.removeItem(at: folder) }
     }
   }
 }
 struct ContinueListeningIntent: AppIntent {
-  static var title: LocalizedStringResource = "Continue listening in listen."
-  static var description = IntentDescription("Resume the last audiobook in listen.")
+  static var title: LocalizedStringResource = "Continue listening in sovo."
+  static var description = IntentDescription("Resume the last audiobook in sovo.")
   static var openAppWhenRun = true
   @MainActor func perform() async throws -> some IntentResult {
     await MobileCompanionBridge.open()

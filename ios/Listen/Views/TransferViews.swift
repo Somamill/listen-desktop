@@ -42,8 +42,8 @@ struct BrowserTransferView: View {
     let files = transfer.files
     let ids = await store.importFiles(
       files, combine: true,
-      enrich: UserDefaults.standard.object(forKey: "automaticMetadata") as? Bool ?? true,
-      convert: UserDefaults.standard.bool(forKey: "automaticConversion"))
+      enrich: true,
+      convert: true)
     if !ids.isEmpty {
       transfer.clear()
       dismiss()
@@ -62,7 +62,7 @@ struct DownloadImportView: View {
         TextField("HTTPS audio or ZIP URL", text: $text).textInputAutocapitalization(.never)
           .autocorrectionDisabled().keyboardType(.URL)
         Text(
-          "Use a direct file URL you have permission to download. For authenticated media libraries, use the Servers tab instead."
+          "Use a direct file URL you have permission to download. For authenticated media libraries, open Media servers in Settings."
         ).font(.footnote).foregroundStyle(.secondary)
         if let error { Text(error).foregroundStyle(.red) }
         if busy { ProgressView("Downloading…") }
@@ -99,8 +99,8 @@ struct DownloadImportView: View {
       try FileManager.default.moveItem(at: temporary, to: target)
       let ids = await store.importFiles(
         [target],
-        enrich: UserDefaults.standard.object(forKey: "automaticMetadata") as? Bool ?? true,
-        convert: UserDefaults.standard.bool(forKey: "automaticConversion"))
+        enrich: true,
+        convert: true)
       if !ids.isEmpty {
         dismiss()
       } else {

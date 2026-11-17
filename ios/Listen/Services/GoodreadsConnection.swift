@@ -2,12 +2,19 @@ import Foundation
 import WebKit
 import Combine
 
-@MainActor final class GoodreadsConnection: NSObject, ObservableObject, WKNavigationDelegate {
+@MainActor final class GoodreadsConnection: NSObject, ObservableObject, WKNavigationDelegate, WKUIDelegate {
     @Published var books: [GoodreadsBook] = []
     @Published var status = "Connect Goodreads to bring your reading shelves here."
     @Published var refreshing = false
     @Published var showSignIn = false
     @Published var profileID: String?
+    @Published var syncEnabled: Bool {
+        didSet { UserDefaults.standard.set(syncEnabled, forKey: "goodreadsCloudSync"); onChange?() }
+    }
+    var onChange: (() -> Void)?
+    private(set) var snapshotDate = Date.distantPast
+    private var snapshotDeviceID: String
+    let deviceID: String
     let webView: WKWebView
     private let file: URL
     private var timer: Timer?
@@ -38,16 +45,27 @@ import Combine
             }
         }
     }
-    override init() {
+    init(root: URL? = nil) {
         let configuration = WKWebViewConfiguration(); configuration.websiteDataStore = .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = false
         webView = WKWebView(frame: .zero, configuration: configuration)
-        let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let root = root ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         file = root.appendingPathComponent("goodreads-shelves.json")
+        syncEnabled = UserDefaults.standard.object(forKey: "goodreadsCloudSync") as? Bool ?? true
+        deviceID = UserDefaults.standard.string(forKey: "deviceID") ?? UUID().uuidString
+        snapshotDeviceID = deviceID
         profileID = UserDefaults.standard.string(forKey: "goodreadsProfileID")
-        super.init(); webView.navigationDelegate = self
+        super.init(); webView.navigationDelegate = self; webView.uiDelegate = self
         preparePrivacy()
-        if let data = try? Data(contentsOf: file), let rows = try? JSONDecoder().decode([GoodreadsBook].self, from: data) { books = rows; status = "Saved Goodreads shelves · refresh to check for changes" }
+        if let data = try? Data(contentsOf: file) {
+            if let snapshot = try? JSONDecoder().decode(GoodreadsCloudSnapshot.self, from: data), snapshot.valid {
+                books = snapshot.books; profileID = snapshot.profileID; snapshotDate = snapshot.updatedAt; snapshotDeviceID = snapshot.deviceID
+            } else if let rows = try? JSONDecoder().decode([GoodreadsBook].self, from: data) {
+                books = rows
+                snapshotDate = (try? FileManager.default.attributesOfItem(atPath: file.path)[.modificationDate] as? Date) ?? .distantPast
+            }
+            status = "Saved Goodreads shelves · refresh to check for changes"
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in Task { @MainActor in self?.refresh() } }
     }
     func connect() {
@@ -55,16 +73,20 @@ import Combine
         guard privacyReady else {
             pendingConnect = true; status = "Preparing Goodreads privacy controls…"; preparePrivacy(); return
         }
-        if webView.url == nil { webView.load(URLRequest(url: URL(string: "https://www.goodreads.com/user/sign_in")!)) }
+        refreshing = false
+        webView.stopLoading()
+        let path = profileID.map { "https://www.goodreads.com/review/list/\($0)?shelf=all" }
+          ?? "https://www.goodreads.com/user/sign_in"
+        webView.load(URLRequest(url: URL(string: path)!))
     }
     func setProfile(_ value: String) {
         guard let url = URL(string: value), url.scheme == "https", ["goodreads.com","www.goodreads.com"].contains(url.host ?? "") else { status = "Use your Goodreads profile or My Books HTTPS link."; return }
         let parts = url.pathComponents
         guard let key = parts.firstIndex(where: { $0 == "show" || $0 == "list" }), parts.indices.contains(key+1), let id = parts[key+1].split(separator: "-").first, !id.isEmpty, id.allSatisfy(\.isNumber) else { status = "The Goodreads profile number could not be read."; return }
-        profileID = String(id); UserDefaults.standard.set(profileID, forKey: "goodreadsProfileID"); refresh()
+        profileID = String(id); UserDefaults.standard.set(profileID, forKey: "goodreadsProfileID"); persist(); refresh()
     }
     func refresh() {
-        guard !refreshing else { return }
+        guard !refreshing, !showSignIn else { return }
         guard let profileID else { status = "Connect Goodreads, paste your profile link, or import its library CSV."; return }
         guard privacyReady else { pendingRefresh = true; preparePrivacy(); return }
         collecting = [:]; page = 1; refreshing = true; status = "Refreshing Goodreads shelves…"
@@ -83,13 +105,19 @@ import Combine
                 self?.setProfile(link)
             }; return
         }
+        if showSignIn {
+            setProfile(url.absoluteString)
+            status = "Goodreads is open in sovo. Tap Done to import your shelves."
+            return
+        }
+        guard refreshing else { return }
         let script = #"""
         (() => {
           const rows = Array.from(document.querySelectorAll('tr.bookalike'));
           return {books: rows.map(row => {
             const title = row.querySelector('td.title a.bookTitle,td.title a');
             const author = row.querySelector('td.author a');
-            const shelf = row.querySelector('td.shelves .shelf,td.shelves a');
+            const shelf = Array.from(row.querySelectorAll('td.shelves .shelf,td.shelves a')).find(a => ['to-read','currently-reading','read','did-not-finish'].includes(a.textContent.trim()));
             const image = row.querySelector('td.cover img');
             const id = title?.href.match(/\/book\/show\/(\d+)/)?.[1];
             return {id:id || row.id,title:(title?.textContent || '').trim(),author:(author?.textContent || '').trim(),shelf:(shelf?.textContent || 'to-read').trim(),cover:image?.src || null,url:title?.href || ''};
@@ -107,7 +135,29 @@ import Combine
             self.persist(); self.status = "Goodreads shelves refreshed · \(self.books.count) books"; self.showSignIn = false
         }
     }
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { refreshing = false; status = "Goodreads is unavailable. Your saved shelves are still here." }
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        guard (error as NSError).code != NSURLErrorCancelled else { return }
+        refreshing = false; status = "Goodreads is unavailable. Your saved shelves are still here."
+    }
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        self.webView(webView, didFailProvisionalNavigation: navigation, withError: error)
+    }
+    func openBook(_ url: URL) {
+        guard privacyReady, GoodreadsPrivacy.allowsNavigation(url, mainFrame: true),
+          ["goodreads.com", "www.goodreads.com"].contains(url.host?.lowercased() ?? "") else { return }
+        refreshing = false
+        showSignIn = true
+        webView.stopLoading()
+        webView.load(URLRequest(url: url))
+    }
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                 for action: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if action.targetFrame == nil, privacyReady, let url = action.request.url,
+          GoodreadsPrivacy.allowsNavigation(url, mainFrame: true) {
+            webView.load(action.request)
+        }
+        return nil
+    }
     func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
                  preferences: WKWebpagePreferences,
                  decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
@@ -117,13 +167,33 @@ import Combine
         decisionHandler(privacyReady && GoodreadsPrivacy.allowsNavigation(url, mainFrame: mainFrame) ? .allow : .cancel, preferences)
     }
     func disconnect() {
+        syncEnabled = false
         pendingConnect = false; pendingRefresh = false
         profileID = nil; books = []; collecting = [:]; refreshing = false; webView.stopLoading()
         UserDefaults.standard.removeObject(forKey: "goodreadsProfileID"); try? FileManager.default.removeItem(at: file)
         WKWebsiteDataStore.default().removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) { }
         status = "Goodreads disconnected on this device."
     }
-    private func persist() { if let data = try? JSONEncoder().encode(books) { try? data.write(to: file, options: .atomic) } }
+    var cloudSnapshot: GoodreadsCloudSnapshot {
+        GoodreadsCloudSnapshot(profileID: profileID, books: books, updatedAt: snapshotDate, deviceID: snapshotDeviceID)
+    }
+    func applyCloud(_ snapshot: GoodreadsCloudSnapshot) {
+        guard syncEnabled, !showSignIn, !refreshing, snapshot.valid, snapshot.newer(than: cloudSnapshot) else { return }
+        profileID = snapshot.profileID; books = snapshot.books; snapshotDate = snapshot.updatedAt; snapshotDeviceID = snapshot.deviceID
+        UserDefaults.standard.set(profileID, forKey: "goodreadsProfileID")
+        writeSnapshot()
+        status = "Goodreads shelves received from iCloud. Website sign-in stays on this device."
+    }
+    private func writeSnapshot() {
+        do {
+            try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+            let encoder = JSONEncoder(); encoder.outputFormatting = .sortedKeys
+            try encoder.encode(cloudSnapshot).write(to: file, options: .atomic)
+        } catch { status = "Goodreads shelves could not be saved: \(error.localizedDescription)" }
+    }
+    private func persist() {
+        snapshotDate = Date(); snapshotDeviceID = deviceID; writeSnapshot(); onChange?()
+    }
     func importCSV(_ url: URL) {
         let access = url.startAccessingSecurityScopedResource(); defer { if access { url.stopAccessingSecurityScopedResource() } }
         do { books = try Self.parseCSV(String(contentsOf: url, encoding: .utf8)); persist(); status = "Imported \(books.count) Goodreads books from CSV. This is a snapshot; connect for refresh." }
@@ -188,4 +258,26 @@ enum GoodreadsPrivacy {
         }
         return String(data: try! JSONSerialization.data(withJSONObject: rules), encoding: .utf8)!
     }()
+}
+
+struct GoodreadsCloudSnapshot: Codable, Equatable {
+  let profileID: String?
+  let books: [GoodreadsBook]
+  let updatedAt: Date
+  let deviceID: String
+  var valid: Bool {
+    func numeric(_ value: String) -> Bool { !value.isEmpty && value.count <= 30 && value.allSatisfy(\.isNumber) }
+    return UUID(uuidString: deviceID) != nil && updatedAt.timeIntervalSinceReferenceDate.isFinite
+      && (profileID.map(numeric) ?? true) && books.count <= 5000
+      && books.allSatisfy { book in
+        guard numeric(book.id), !book.title.isEmpty, book.title.count <= 1000, book.author.count <= 500,
+          let url = URL(string: book.url), url.scheme == "https",
+          ["goodreads.com", "www.goodreads.com"].contains(url.host?.lowercased() ?? ""),
+          url.user == nil, url.password == nil else { return false }
+        return true
+      }
+  }
+  func newer(than other: Self) -> Bool {
+    updatedAt > other.updatedAt || (updatedAt == other.updatedAt && deviceID > other.deviceID)
+  }
 }

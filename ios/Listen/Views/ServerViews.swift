@@ -4,8 +4,7 @@ struct MediaServersView: View {
   @EnvironmentObject var servers: ServerLibrary
   @State private var connect = false
   var body: some View {
-    NavigationStack {
-      List {
+    List {
         Section {
           Text(
             "Download DRM-free audiobooks from your own Audiobookshelf or Jellyfin server. Server credentials stay in this device’s Keychain."
@@ -38,7 +37,6 @@ struct MediaServersView: View {
         Button("Add server", systemImage: "plus") { connect = true }.accessibilityIdentifier(
           "addServer")
       }.sheet(isPresented: $connect) { ServerConnectView() }
-    }
   }
 }
 struct ServerConnectView: View {

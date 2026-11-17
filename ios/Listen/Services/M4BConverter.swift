@@ -5,6 +5,7 @@ import UIKit
 struct M4BConverter {
     static func convert(_ original: AudioBook, directory: URL) async throws -> AudioBook {
         guard !original.tracks.isEmpty else { throw ListenError.message("There is no audio to convert.") }
+        guard original.needsM4BConversion else { return original }
         let composition = AVMutableComposition()
         guard let target = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else { throw ListenError.message("An audio track could not be created.") }
         var cursor = CMTime.zero
@@ -24,6 +25,7 @@ struct M4BConverter {
             let value = AVMutableMetadataItem(); value.identifier = key; value.value = text as NSString; return value
         }
         var metadata = [item(.commonIdentifierTitle, original.title),item(.commonIdentifierArtist, original.author),item(.commonIdentifierAlbumName, original.title)]
+        if original.genreLabel != BookGenre.uncategorized.rawValue { metadata.append(item(.iTunesMetadataUserGenre, original.genreLabel)) }
         if let cover = original.coverFilename, let data = try? Data(contentsOf: directory.appendingPathComponent(cover)) {
             let artwork = AVMutableMetadataItem(); artwork.identifier = .commonIdentifierArtwork; artwork.value = data as NSData; artwork.dataType = kCMMetadataBaseDataType_JPEG as String; metadata.append(artwork)
         }

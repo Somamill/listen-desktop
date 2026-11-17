@@ -28,7 +28,7 @@ import CarPlay
       }
       return item
     }
-    let list = CPListTemplate(title: "listen.", sections: [CPListSection(items: items)])
+    let list = CPListTemplate(title: "sovo.", sections: [CPListSection(items: items)])
     controller?.setRootTemplate(list, animated: false, completion: nil)
   }
 }

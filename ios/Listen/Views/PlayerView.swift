@@ -13,6 +13,7 @@ struct PlayerView: View {
   @State private var bookmarked = false
   @State private var queue = false
   @State private var customSleep = false
+  @State private var airPodsSleep = false
   @State private var editedBookmark: Bookmark?
   @AppStorage("skipForward") private var skipForward = 30.0
   @AppStorage("skipBackward") private var skipBackward = 15.0
@@ -91,6 +92,7 @@ struct PlayerView: View {
                   }
                 }
                 Button("Custom…") { customSleep = true }
+                Button("AirPods sleep detection…") { airPodsSleep = true }
                 Button("Turn off", role: .cancel) {
                   player.sleepUntil = nil
                   player.sleepChapterEnd = nil
@@ -134,6 +136,11 @@ struct PlayerView: View {
         }.background(ListenTheme.background)
           .sheet(isPresented: $queue) { PlaybackQueueView() }
           .sheet(isPresented: $customSleep) { SleepTimerEditor() }
+          .sheet(isPresented: $airPodsSleep) {
+            NavigationStack { AirPodsSleepHelp().toolbar {
+              ToolbarItem(placement: .confirmationAction) { Button("Done") { airPodsSleep = false } }
+            } }
+          }
           .sheet(isPresented: $chapters) {
             NavigationStack {
               List(book.chapters) { chapter in

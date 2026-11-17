@@ -6,7 +6,7 @@ final class ShareViewController: UIViewController {
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .systemBackground
-    message.text = "Preparing audio for listen.…"
+    message.text = "Preparing audio for sovo.…"
     message.numberOfLines = 0
     message.textAlignment = .center
     message.translatesAutoresizingMaskIntoConstraints = false
@@ -23,7 +23,7 @@ final class ShareViewController: UIViewController {
   @MainActor private func receive() async {
     guard let root = CompanionStorage.directory else {
       message.text =
-        "Shared import needs the app’s signed App Group capability. Open the file directly in listen. or import it from Files."
+        "Shared import needs the app’s signed App Group capability. Open the file directly in sovo. or import it from Files."
       return
     }
     let folder = root.appendingPathComponent("Inbox/\(UUID().uuidString)", isDirectory: true)
@@ -64,7 +64,7 @@ final class ShareViewController: UIViewController {
           userInfo: [NSLocalizedDescriptionKey: "Choose audio or a ZIP archive."])
       }
       try Data("{}".utf8).write(to: folder.appendingPathComponent("ready.json"), options: .atomic)
-      message.text = "Saved for listen. Open the app to finish importing."
+      message.text = "Saved for sovo. Open the app to finish importing."
       extensionContext?.completeRequest(returningItems: nil)
     } catch {
       try? FileManager.default.removeItem(at: folder)

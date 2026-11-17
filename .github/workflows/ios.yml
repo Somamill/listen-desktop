@@ -16,7 +16,7 @@ jobs:
       - name: Build native iOS and iPadOS target
         run: xcodebuild -project ios/Listen.xcodeproj -scheme Listen -sdk iphonesimulator -configuration Debug -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO build
       - name: Verify packaged audio and extensions
-        run: python3 ios/scripts/check_bundle.py build/ios/Build/Products/Debug-iphonesimulator/Listen.app
+        run: python3 ios/scripts/check_bundle.py build/ios/Build/Products/Debug-iphonesimulator/sovo.app
       - name: Test media, conversion, import and progress logic
         run: |
           DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; import re; devices=json.load(sys.stdin)["devices"]; runtimes=sorted((k for k in devices if "SimRuntime.iOS-" in k),key=lambda k:tuple(map(int,re.findall(r"[0-9]+",k))),reverse=True); print(next(d["udid"] for r in runtimes for d in devices[r] if "iPhone" in d["name"]))')
@@ -32,4 +32,4 @@ jobs:
       - name: Build sandboxed Mac player without signing
         run: xcodebuild -project ios/Listen.xcodeproj -scheme Listen -configuration Release -destination 'generic/platform=macOS,variant=Mac Catalyst' -derivedDataPath build/catalyst CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
       - name: Verify Mac audio, extensions and privacy manifest
-        run: python3 ios/scripts/check_bundle.py 'build/catalyst/Build/Products/Release-maccatalyst/listen Player.app'
+        run: python3 ios/scripts/check_bundle.py 'build/catalyst/Build/Products/Release-maccatalyst/sovo.app'
