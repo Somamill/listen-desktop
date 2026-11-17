@@ -1,6 +1,6 @@
 # BookPlayer comparison and independent implementation
 
-sovo. mobile 0.2.0 is a developer preview. It is not a complete BookPlayer replacement or a device-validated App Store release.
+The current update candidate is sovo. 1.0.1 (8), independently implemented and uploaded for iOS and Mac. It is not a complete BookPlayer replacement. The local native regression suites passed 41 cases on each iPhone/iPad simulator; one entitlement-dependent Keychain test was skipped per device. Fresh physical-device coverage remains separate.
 
 ## Evidence
 
@@ -31,9 +31,9 @@ A declaration or translated string proves that an interface contract exists; it 
 | Server privacy | Keychain tokens, no credentials in URLs/config JSON, same-origin authenticated redirects, TLS validation | Self-signed certificates are not silently trusted. |
 | Share / widget / Siri | Share audio/ZIP into inbox, continue-listening widget and App Shortcut | App Group must be provisioned for all three targets; physical-device verification pending. |
 | CarPlay | Native library and Now Playing scene adapter with opt-in configuration fragments | Disabled by default; requires Apple's approved audio entitlement and hardware/simulator validation. |
-| Metadata / M4B | Embedded metadata, optional Apple Books match and covers; genuine MP3→AAC M4B with chapter markers | Audio is not uploaded; matching can be edited manually. |
+| Metadata / M4B | Embedded tags first; automatic confident Apple Books/Open Library matching, large covers, genres and compatible import-time AAC M4B conversion | Original imports are retained; unmatched facts remain unknown. No audio upload for metadata. |
 | Goodreads | Persisted in-app session, read-only shelf refresh and CSV fallback | No guaranteed perpetual authentication or supported write/progress API. |
-| iCloud | App Documents and progress conflict handling from the earlier preview | Requires a signed container and two-device testing. |
+| iCloud | Private App Documents, progress conflict handling, optional Goodreads profile/shelf snapshots; credentials remain device-local | Fresh build-8 two-device synchronization still needs hardware verification. |
 
 Apple Watch, Hardcover, BookPlayer's paid cloud service, alternate paid artwork/icons, Jellyfin Quick Connect, server progress synchronization and full BookPlayer feature parity are **not** included. They are not represented as working controls.
 
@@ -44,3 +44,11 @@ Use a development team and unique identifiers for the app, widget and share targ
 CarPlay is deliberately opt-in. After Apple approves the audio entitlement, merge `OptionalCapabilities/CarPlay.entitlements.fragment.plist` into the main app entitlements and the corresponding Info fragment into the scene configuration. Preserve existing SwiftUI scene settings. Validate connection, queueing, controls and disconnection using Apple's CarPlay tools and a real supported head unit before distributing it as CarPlay-enabled. Adding a plist key alone does not grant the capability.
 
 See [validation](VALIDATION.md) for executed checks and unresolved verification.
+
+## Release reference recheck — 18 November 2026
+
+Public BookPlayer snapshot [`ef291a71670cd6cb8b68e4715acb6b4f36659538`](https://github.com/TortugaPower/BookPlayer/tree/ef291a71670cd6cb8b68e4715acb6b4f36659538) was checked again: README, `Shared/Services/AudioMetadataService.swift`, `Shared/Player/SleepTimer.swift`, and its CI/release workflows. Its metadata reader uses AVFoundation and chapter extraction, including recovery parsers for container cases. Its timer distinguishes countdown, end-of-chapter and off states. These are behavioral references, not a claim that all upstream features or recovery formats exist in sovo.
+
+BookPlayer's [release-signal workflow](https://github.com/TortugaPower/BookPlayer/blob/ef291a71670cd6cb8b68e4715acb6b4f36659538/.github/workflows/release-signal.yml) records a Store release only after Apple publication. A source push, upload, processed build and review submission are distinct states. In sovo., the protected GitHub merge is therefore not an Apple prerequisite; the public review/privacy links can point to the exact release commit while main remains protected.
+
+The [fastlane submission implementation](https://github.com/fastlane/fastlane/blob/master/deliver/lib/deliver/submit_for_review.rb) and [Apple's submission guide](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-app) were checked for the final flow: select a processed build, complete compliance and metadata, find/create one review submission for the platform, add the App Store version, wait for Ready for Review, then submit and verify Waiting for Review. Existing review items must not be blindly duplicated. No BookPlayer code or assets were copied, and no hosted Actions were enabled for this recheck.
