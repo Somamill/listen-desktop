@@ -1,3 +1,15 @@
+# 1.0.1 (8) delivery — 18 November 2026
+
+Both signed iOS and macOS packages were uploaded successfully and processed by Apple as `VALID`, with no processing errors or warnings. The iOS build is selected on the 1.0.1 draft. Updated native iPhone screenshots were verified complete; iPad screenshots were uploaded, but final gallery cleanup still needs confirmation after Apple API timeouts/errors. The new Mac screenshot is prepared locally.
+
+Local release QA passed: 41 native tests on each disposable iPhone and iPad simulator, with one entitlement-dependent Keychain test skipped on each; 38 backend tests; four release-helper tests; frontend syntax, dependency audit, brand assets/checksums and bundle checks. Both Release archives succeeded. An isolated Mac development build also demonstrated immediate playback, progress to eight seconds and working pause. Physical build-8 iPhone, authenticated Goodreads, real cross-device shelf sync and actual AirPods falling-asleep detection remain unverified.
+
+Source is published in [PR #10](https://github.com/Somamill/listen/pull/10), branch `release/sovo-1.0.1`. GitHub rejected both the direct main push and maintainer merge because required hosted checks are absent. Actions remain disabled by owner policy; no checks or branch rules were bypassed. Owner approval is needed before temporarily enabling the required Actions runs.
+
+Neither new Store update has been submitted for review yet. iOS 1.0.1 remains a prepared draft; macOS 1.0.0 remains in its existing review. Both legacy and current API attempts to withdraw the older Mac review returned HTTP 500, so its replacement could not be completed. Several review/App Info/gallery endpoints also returned HTTP 500 or timed out. Chrome is at Apple's website password step; no password was retrieved from Keychain or entered by the agent. The new privacy/support/reviewer documents are public on the release branch, while main is still awaiting merge.
+
+---
+
 # Metadata, genres, Goodreads iCloud and AirPods sleep pause — 18 November 2026
 
 Fresh practical checks on 18 November: Apple Books DE/US returned matching metadata and 1200×1200 / 1169×1200 covers for two public test titles; Open Library returned the matching German title, author, subjects and cover identifier. The owner's existing Chrome Developer tab confirmed the main app's App Group and selected iCloud container are already enabled, so no capability changes were needed. App Store Connect website authentication has expired; API access still confirms iOS 1.0.0 is released, macOS 1.0.0 is in review and iOS 1.0.1 is a draft. A live Goodreads shelf request returned a sign-in page, not shelf data. The physical iPhone is currently unavailable to devicectl and Mirroring timed out; these checks do not certify authenticated Goodreads, cross-device cloud transfer or actual AirPods sleep detection for build 8.
@@ -10,7 +22,7 @@ AirPods sleep pause uses Apple’s system feature and existing media pause comma
 
 Validation: 30 unit tests passed, plus the targeted server conversion test (31 distinct cases); genre/setup and direct-book/player/navigation UI scenarios passed. iOS simulator and universal Mac builds and bundle checks pass. Physical AirPods detection, signed cross-device iCloud and authenticated Goodreads still need device QA. UI layout uses native controls; native screenshot review and the scoped Impeccable regex scan were used, not browser validation.
 
-This update remains local and unsubmitted. GitHub Actions remain disabled. Genre organization is virtual shelves, with no extra audio copies. Unmatched authors/genres remain explicitly unknown rather than invented. Setup and data handling are documented in SUPPORT.md and PRIVACY.md.
+Both platform packages are now uploaded but not submitted for App Review; see the delivery status above. GitHub Actions remain disabled. Genre organization is virtual shelves, with no extra audio copies. Unmatched authors/genres remain explicitly unknown rather than invented. Setup and data handling are documented in SUPPORT.md and PRIVACY.md.
 
 ---
 
