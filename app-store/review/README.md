@@ -4,13 +4,13 @@ This guide describes the native `ios/` App Store app, **sovo.**, version 1.0.1 (
 
 ## Purpose and audience
 
-For listeners who already have lawful, DRM-free audiobook files, sovo. brings imports, offline playback, chapters, position tracking, bookmarks, queues, playback speed, timers and metadata editing into one library. Optional MP3-to-M4B conversion combines chapters into AAC audio while retaining the imported originals. Optional iCloud shares the user's library and progress between their own devices.
+For listeners who already have lawful, DRM-free audiobook files, sovo. brings imports, offline playback, chapters, position tracking, bookmarks, queues, playback speed, timers and metadata editing into one library. Compatible imports automatically combine chapters into AAC M4B audio while retaining the imported originals. Optional iCloud shares the user's library and progress between their own devices.
 
 ## Access and sample files
 
 Core functionality needs no account, registration, payment or developer-operated backend. There are no in-app purchases, paid unlocks or subscriptions. No demo credentials are needed for local playback.
 
-Use the [original sample ZIP](https://raw.githubusercontent.com/Somamill/listen/main/app-store/review/samples/listen-review-sample.zip): **Library → + → Download a file → paste the direct ZIP link → Download**. Open the imported book, start playback, change speed, add a bookmark, set a sleep timer, pause and resume. In book details, edit metadata or choose **Create M4B audiobook**. Conversion is local and retains the imported originals. Original tutorial text and its redistribution license accompany the MP3 chapters.
+Use the [original sample ZIP](https://raw.githubusercontent.com/Somamill/listen/main/app-store/review/samples/listen-review-sample.zip): **Library → + → Download a file → paste the direct ZIP link → Download**. Open the imported book, start playback, change speed, add a bookmark, set a sleep timer, pause and resume. Book details let you edit metadata. Compatible imports convert automatically before the book is saved; a single existing M4B stays unchanged. Conversion is local and retains the imported originals. Original tutorial text and its redistribution license accompany the MP3 chapters.
 
 For reading shelves without a provider login, download [goodreads-demo.csv](https://raw.githubusercontent.com/Somamill/listen/main/app-store/review/samples/goodreads-demo.csv). In **Settings → Goodreads**, expand **Other ways to bring your shelves**, then select **Import Goodreads CSV**. The three records demonstrate Want to Read, Currently Reading and Read. These are invented reading statuses for public book identifiers, not anyone's personal data or an authenticated/live connection. CSV import is explicitly a snapshot.
 

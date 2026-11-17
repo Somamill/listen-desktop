@@ -23,7 +23,7 @@ class NativeSimulatorSafetyTests(unittest.TestCase):
         def capture(*args):
             if 'devices' in args:
                 return json.dumps({'devices': {'com.apple.CoreSimulator.SimRuntime.iOS-27-0': [
-                    {'name': 'iPhone Test', 'udid': 'personal-device'}]}})
+                    {'name': 'iPhone Custom QA', 'udid': 'personal-device', 'deviceTypeIdentifier': 'phone-type'}]}})
             if 'devicetypes' in args:
                 return json.dumps({'devicetypes': [{'name': 'iPhone Test', 'identifier': 'phone-type'}]})
             if 'create' in args:

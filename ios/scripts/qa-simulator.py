@@ -33,13 +33,14 @@ def main():
         matches = [(r, d) for r in runtimes for d in devices[r] if family in d['name']]
         if not matches:
             raise RuntimeError(f'No available {family} simulator runtime')
+        matches = [match for match in matches if match[0] == matches[0][0]]
         preferred = 'Pro Max' if family == 'iPhone' else '13-inch'
         runtime, template = next((m for m in matches if preferred in m[1]['name']), matches[0])
         device_type = template.get('deviceTypeIdentifier') or next(t['identifier'] for t in types if t['name'] == template['name'])
         udid = capture('xcrun', 'simctl', 'create', f'dot-qa-sovo-{family}', device_type, runtime)
         try:
             subprocess.run(['xcrun', 'simctl', 'boot', udid], check=True, timeout=180)
-            subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], check=True)
+            subprocess.run(['xcrun', 'simctl', 'bootstatus', udid, '-b'], check=True, timeout=300)
             with (artifacts / f'{family}-xcodebuild.log').open('w') as log:
                 result = subprocess.run([
                     'xcodebuild', '-project', 'ios/Listen.xcodeproj', '-scheme', 'Listen',
