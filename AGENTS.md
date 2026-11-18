@@ -17,3 +17,13 @@ Read `.agent-tools/policy.md` for UI or video work. Use **Impeccable** and **Hal
 
 Local checks: community Python logic uses `python3 -m unittest discover -s tests`; its declared dependencies must be installed in the project environment. Native sovo. lives in `ios/`; use its Xcode project/build scripts and `ios/scripts/check_bundle.py` for the built product. Brand changes use `python3 branding/dot/check.py`; sync with `python3 scripts/sync-dot-brand.py /path/to/reviewed-kit`. Do not describe community catalogue discovery as a native sovo. player feature.
 <!-- dot-suite-work:end -->
+
+<!-- app-store-growth:start -->
+## App Store release and presentation rules
+
+Before Store metadata, screenshots, previews, creative assets or submission work, read `app-store/MARKETING.md` and the [pinned shared playbook](https://github.com/Somamill/dot-brand-kit/blob/9e3a3941759d6d6d731d6739f102f2f84bb199f4/docs/APP_STORE_PLAYBOOK.md) using the GitHub connector/CLI or an exact matching local checkout. Recheck Apple's current requirements and the actual App Store Connect state; do not silently skip the policy if unavailable.
+
+Produce benefit-led feature cards around real native Store-build captures, with app-specific identity and feature-to-evidence coverage. Keep screenshots, app previews, optional creative assets and private physical-review demos distinct. Verify ASO/localization, current icon, supported devices, media rights, field limits and final rendered exports. Assess eligible Asset Library/PPO/custom pages/analytics rather than assuming every tool applies to Mac. Record the playbook's release packet, measured results and omissions. No invented UI, awards, metrics, catalogue or unshipped feature claims.
+
+Use Impeccable/Hallmark for presentation review and Hyperframes for actual video work. Prefer existing background APIs/tools, retain publishing authorization boundaries, and keep Actions/automatic delivery off. Updating this policy alone does not authorize Apple publication or paid advertising.
+<!-- app-store-growth:end -->

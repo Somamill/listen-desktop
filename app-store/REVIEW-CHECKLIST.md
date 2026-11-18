@@ -26,3 +26,7 @@ For browser transfer, start the temporary session on a trusted local network, im
 ## Submission
 
 Check the public privacy policy against current behavior, then complete Apple's privacy and age-rating questionnaires truthfully, including embedded website access. Capture actual current-version iPhone, iPad and Mac screenshots without private account data or invented content. Set free/paid availability intentionally. Validate signed archives and all extensions, upload, associate the processed builds, and submit both platforms. Never accept missing iCloud permissions as a successful release.
+
+## App Store presentation and growth
+
+Before metadata or asset work, use the [local marketing brief](MARKETING.md) and its pinned shared playbook. Prepare the feature story and release packet before uploading; an unframed raw capture alone is not a completed new product-page campaign. Preserve matching approved assets for unchanged hotfixes. Keep public marketing and Apple-requested private device evidence separate.
