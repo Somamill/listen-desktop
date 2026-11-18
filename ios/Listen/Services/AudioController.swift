@@ -37,6 +37,12 @@ import UIKit
   private let store: LibraryStore
   private let cloud: CloudLibrary
   var book: AudioBook? { store.books.first { $0.id == bookID } }
+  func removeFromPlayback(_ id: UUID) {
+    queue.removeAll { $0 == id }
+    guard bookID == id else { return }
+    pause(); player?.replaceCurrentItem(with: nil); bookID = nil
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+  }
   init(store: LibraryStore, cloud: CloudLibrary) {
     self.store = store
     self.cloud = cloud
@@ -151,7 +157,7 @@ import UIKit
     playing = autoplay
     cloud.activeBookID = autoplay ? bookID : nil
     previousTick = Date()
-    if autoplay { player?.playImmediately(atRate: rate) }
+    if autoplay { player?.playImmediately(atRate: rate); persist() }
     nowPlaying()
   }
   func tick() {
@@ -239,6 +245,14 @@ import UIKit
       defer { loading = false }
       do {
         try await Self.activateSession()
+        if let book, !book.tracks.indices.contains(index)
+          || (player?.currentItem?.asset as? AVURLAsset)?.url != store.file(book, book.tracks[index]) {
+          if book.tracks.contains(where: { !FileManager.default.fileExists(atPath: store.file(book, $0).path) }) {
+            try await cloud.download(book)
+          }
+          loadTrack(at: book.state.position, autoplay: true)
+          return
+        }
         if let book, book.state.updatedAt > lastSave {
           loadTrack(at: book.state.position, autoplay: true)
           return

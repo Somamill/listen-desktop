@@ -13,14 +13,21 @@ struct GoodreadsView: View {
     var body:some View {
         List {
                 Section {
-                    Text(goodreads.status).font(.subheadline).foregroundStyle(.secondary)
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: goodreads.needsSignIn ? "person.crop.circle.badge.exclamationmark" : "books.vertical").font(.title2).foregroundStyle(ListenTheme.accent)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(goodreads.refreshing ? "Refreshing your shelves" : goodreads.needsSignIn ? "Sign-in needs attention" : goodreads.books.isEmpty ? "Your reading, together" : "\(goodreads.books.count) saved books").font(.headline)
+                            Text(goodreads.status).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                        if goodreads.refreshing { ProgressView() }
+                    }.padding(.vertical, 8)
                     if goodreads.snapshotDate != .distantPast {
                         Text("Saved shelves: \(goodreads.snapshotDate.formatted(date: .abbreviated, time: .shortened))").font(.footnote).foregroundStyle(.secondary)
                     }
                     if goodreads.needsSignIn {
                         Label("Reconnect to refresh. Your saved shelves are still available.", systemImage: "person.crop.circle.badge.exclamationmark").font(.footnote)
                     }
-                    Button(goodreads.profileID == nil ? "Sign in to Goodreads":"Open Goodreads connection",systemImage:"person.crop.circle.badge.checkmark"){goodreads.connect()}.accessibilityIdentifier("connectGoodreads")
+                    Button(goodreads.profileID == nil || goodreads.needsSignIn ? "Sign in to Goodreads":"Open Goodreads",systemImage:"person.crop.circle.badge.checkmark"){goodreads.connect()}.accessibilityIdentifier("connectGoodreads")
                     if goodreads.profileID != nil {Button("Refresh shelves",systemImage:"arrow.clockwise"){goodreads.refresh()}.disabled(goodreads.refreshing)}
                     DisclosureGroup("Other ways to bring your shelves") {
                         TextField("Goodreads profile or My Books link",text:$profile).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
@@ -55,9 +62,9 @@ struct GoodreadsView: View {
                         }
                     }
                 } else {
-                    Section {Text("Goodreads is an optional read-only connection. Sign in here or import a CSV; no sovo. account is needed. Want to Read, Currently Reading, Read, and Did Not Finish stay separate. Your audiobook listening progress syncs through iCloud; Goodreads reading status is not changed automatically.").foregroundStyle(.secondary)}
+                    Section {Text("Bring Want to Read, Currently Reading and Read into one place. Sign in once on this device or import a CSV. sovo. reads your shelves; listening progress does not change Goodreads automatically.").font(.subheadline).foregroundStyle(.secondary)}
                 }
-            }.navigationTitle("Goodreads").refreshable { goodreads.refresh() }.navigationDestination(for:UUID.self){BookDetail(bookID:$0)}
+            }.scrollContentBackground(.hidden).background(ListenTheme.background).navigationTitle("Goodreads").refreshable { goodreads.refresh() }.navigationDestination(for:UUID.self){BookDetail(bookID:$0)}
                 .sheet(isPresented:$goodreads.showSignIn){NavigationStack{GoodreadsWebsite(connection:goodreads).navigationTitle("Goodreads").navigationBarTitleDisplayMode(.inline).toolbar{ToolbarItem(placement:.confirmationAction){Button("Done"){goodreads.showSignIn=false;goodreads.refresh()}}}}}
                 .fileImporter(isPresented:$csv,allowedContentTypes:[.commaSeparatedText],allowsMultipleSelection:false){result in if case let .success(urls)=result,let url=urls.first{goodreads.importCSV(url)}}
     }

@@ -6,6 +6,7 @@ struct Importer {
     static func supported(_ url: URL) -> Bool { ["mp3","m4b","m4a","flac","wav","aac","aif","aiff"].contains(url.pathExtension.lowercased()) }
     static func copy(_ sources: [URL], into root: URL) async throws -> AudioBook {
         var book = AudioBook(title: sources[0].deletingPathExtension().lastPathComponent)
+        book.sourceTitle = sources[0].deletingPathExtension().lastPathComponent
         let directory = root.appendingPathComponent(book.id.uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         do {
@@ -30,6 +31,14 @@ struct Importer {
                 let metadata = try await asset.load(.commonMetadata)
                 if index == 0 {
                     let allMetadata = (try? await asset.load(.metadata)) ?? []
+                    for item in allMetadata {
+                        let key = item.identifier?.rawValue.lowercased() ?? ""
+                        guard let value = try? await item.load(.stringValue), !value.isEmpty else { continue }
+                        if key.contains("narrator") || key.contains("reader") { book.narrator = value }
+                        if key.hasSuffix("tpub") { book.publisher = value }
+                        if key.hasSuffix("tlan") { book.language = value }
+                        if key.hasSuffix("tyer") || key.hasSuffix("tdrc"), let year = Int(value.prefix(4)), (1000...3000).contains(year) { book.releaseYear = year }
+                    }
                     for identifier in [AVMetadataIdentifier.iTunesMetadataUserGenre, .id3MetadataContentType, .quickTimeMetadataGenre] {
                         if let value = try? await AVMetadataItem.metadataItems(from: allMetadata, filteredByIdentifier: identifier).first?.load(.stringValue), BookGenre.classify([value]) != .uncategorized {
                             book.genre = BookGenre.classify([value]).rawValue; break

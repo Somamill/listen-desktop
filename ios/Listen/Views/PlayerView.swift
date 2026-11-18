@@ -28,7 +28,7 @@ struct PlayerView: View {
               Text(book.title).font(.title.weight(.bold)).multilineTextAlignment(.center)
               Text(book.author).foregroundStyle(.secondary)
             }
-            if let current = book.chapters.last(where: { $0.start <= player.position }) {
+            if let current = book.displayChapters.last(where: { $0.start <= player.position }) {
               Text(current.title).font(.subheadline).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             }
@@ -143,7 +143,7 @@ struct PlayerView: View {
           }
           .sheet(isPresented: $chapters) {
             NavigationStack {
-              List(book.chapters) { chapter in
+              List(book.displayChapters) { chapter in
                 Button {
                   player.seek(chapter.start)
                   chapters = false

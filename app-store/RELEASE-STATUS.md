@@ -1,3 +1,26 @@
+# 1.0.1 (11) — current release status, 18 November 2026
+
+**Uploaded and processed, not submitted or released.** Both Apple builds are VALID:
+- iOS/iPadOS: `40145b36-00cd-4cc0-926c-112e5dc163fc`.
+- macOS: `c7319693-d2a5-456d-988f-45b077e5166a`.
+
+Both Release archives, isolated-keychain signing, signature/bundle checks and Apple's package validation passed. No login-keychain password prompts were used. GitHub Actions remain disabled. Native logic: 44 passed, zero failures/skips. The targeted native run covering combined Library navigation and confirmed swipe removal passed (46 tests including logic). Test audio is absent from the shipped bundle; an optional LibriVox classic replaces the bundled demo entry point.
+
+Physical iPhone 14, iOS 27.2.1, direct USB: build 11 installed preserving the library. The existing 34-MP3 Silk Roads book received verified author, narrator, History genre, high-resolution cover, audio-edition year, publisher and language. The long conversion reached 50% but has not produced a verified M4B; it must not be reported as passed. Original MP3s remain present. Do not submit this candidate until conversion/recovery is resolved and final native visual checks are complete.
+
+Library now combines Books, Genres, Authors and Narrators; You and Settings remain separate. Covers use aspect-fit in full and compact players. Person profiles require verified identity and licensed portrait credits. Default ordering follows recent listening; deletion uses native swipe with confirmation and is local-only. Chapters display as Chapter - 01, etc.
+
+## Remaining release gates
+- Complete the physical 34-file conversion, verify final duration and chapter count, retained originals and playback near the end.
+- Fresh iPhone/iPad/Mac Release-build visual checks, clean cleared-media captures and finished Store feature cards. The iOS 26.5 Store screenshot attempt failed because the Simulator could not boot; this is not a passed screenshot run.
+- Reconcile current Store copy, privacy URL, reviewer instructions and selected build; verify actual submission state in authenticated Chrome. No fresh final build 11 review demonstration is claimed.
+- Live private Goodreads authentication, two-device iCloud delivery and AirPods hardware sleep behavior remain unverified. Optional website/sync availability is not guaranteed.
+- Twelve-language baseline is not implemented. Owner explicitly approved an exception for this in-flight update on 18 November 2026; the following update must complete the localization audit and implementation.
+
+Earlier entries below describe earlier candidates, not build 11 readiness.
+
+---
+
 # 1.0.1 (8) delivery — 18 November 2026
 
 Both signed iOS and macOS packages were uploaded successfully and processed by Apple as `VALID`, with no processing errors or warnings. The iOS build is selected on the 1.0.1 draft. Both required iPhone and iPad galleries are now verified with three new COMPLETE native screenshots each. The new Mac screenshot is prepared locally.

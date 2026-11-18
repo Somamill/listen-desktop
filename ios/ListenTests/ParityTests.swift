@@ -45,7 +45,8 @@ import ZIPFoundation
             ("<table id='books'><tbody id='booksBody'><tr class='bookalike'><td class='title'><a class='bookTitle' href='https://www.goodreads.com/book/show/123'>Test book</a></td><td class='author'><a>Author</a></td><td class='shelves'><a class='shelf'>read</a></td></tr></tbody></table>", true, 1),
             ("<table id='books'><tbody id='booksBody'></tbody></table>", false, 0),
             ("<table id='books'><tbody id='booksBody'><tr><td>No books</td></tr></tbody></table>", true, 0),
-            ("<form action='/user/sign_in'><input type='password'></form><table id='books'><tbody id='booksBody'><tr><td>No books</td></tr></tbody></table>", false, 0)
+            ("<form action='/user/sign_in'><input type='password'></form><table id='books'><tbody id='booksBody'><tr><td>No books</td></tr></tbody></table>", false, 0),
+            ("<form style='display:none' action='/user/sign_in'><input type='password'></form><table id='books'><tbody id='booksBody'><tr class='bookalike'><td class='title'><a href='https://www.goodreads.com/book/show/123'>Saved book</a></td></tr></tbody></table>", true, 1)
         ]
         for (html, valid, count) in fixtures {
             let loaded = expectation(description: "Shelf fixture loaded")
@@ -116,7 +117,7 @@ import ZIPFoundation
         XCTAssertEqual(samples, [-1, -0.4, 0, 0.6, 1])
     }
     func testVolumeBoostTapCanBeConfigured() async throws {
-        let sample = try XCTUnwrap(Bundle.main.url(forResource: "Sample", withExtension: "mp3"))
+        let sample = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Sample", withExtension: "mp3"))
         let tracks = try await AVURLAsset(url: sample).loadTracks(withMediaType: .audio)
         let track = try XCTUnwrap(tracks.first)
         let mix = try VolumeBoost.mix(track: track)
@@ -148,7 +149,7 @@ import ZIPFoundation
     }
     func testQueuedImportsAndRecoveryBookmarkLimit() async throws {
         let store = LibraryStore(root: root.appendingPathComponent("Library"))
-        let sample = try XCTUnwrap(Bundle.main.url(forResource: "Sample", withExtension: "mp3"))
+        let sample = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Sample", withExtension: "mp3"))
         async let first = store.importFiles([sample], enrich: false)
         async let second = store.importFiles([sample], enrich: false)
         let ids = await [first, second]

@@ -43,11 +43,11 @@ struct RootView: View {
   }
   private var legacyTabs: some View {
     TabView {
-      LibraryView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+      LibraryView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer.background(.bar) }
         .tabItem { Label("Library", systemImage: "books.vertical") }
-      ReadingView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+      ReadingView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer.background(.bar) }
         .tabItem { Label("You", systemImage: "person.crop.circle") }
-      SettingsView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer }
+      SettingsView().safeAreaInset(edge: .bottom, spacing: 0) { miniPlayer.background(.bar) }
         .tabItem { Label("Settings", systemImage: "gearshape") }
     }
   }
@@ -58,7 +58,7 @@ struct RootView: View {
           showPlayer = true
         } label: {
           HStack {
-            BookArtwork(book: book, root: store.root).frame(width: 44, height: 52)
+            BookArtwork(book: book, root: store.root).frame(width: 40, height: 40)
             VStack(alignment: .leading) {
               Text(book.title).font(.subheadline.weight(.semibold)).lineLimit(1)
               Text(book.author).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -73,7 +73,7 @@ struct RootView: View {
             width: 44, height: 44)
         }.accessibilityLabel(player.playing ? "Pause" : "Play").accessibilityIdentifier(
           "miniPlayPause")
-      }.padding(.horizontal).padding(.vertical, 8).background(.regularMaterial)
+      }.padding(.horizontal).padding(.vertical, 4)
     }
   }
 
@@ -88,7 +88,8 @@ struct LibraryView: View {
   @State private var combine = true
   @State private var search = ""
   @State private var shelf = "All"
-  @State private var genre = "All genres"
+  @State private var category: LibraryCategory?
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @State private var selected: UUID?
   @State private var showDetails = false
   @State private var selectedFolder: String?
@@ -97,23 +98,25 @@ struct LibraryView: View {
   @State private var showActivity = false
   @State private var showBrowserTransfer = false
   @State private var showDownload = false
-  @AppStorage("librarySort") private var sortOrder = "manual"
+  @State private var showClassic = false
+  @State private var pendingRemoval: AudioBook?
+  @AppStorage("librarySort") private var sortOrder = "played"
+  @AppStorage("recentSortMigration") private var recentSortMigration = false
   @AppStorage("reverseSort") private var reverseSort = false
   var filtered: [AudioBook] {
     let result = store.books.filter { book in
       (selectedFolder == nil || book.folder == selectedFolder
         || book.folder.hasPrefix(selectedFolder! + "/"))
         && (search.isEmpty
-          || (book.title + " " + book.author).localizedCaseInsensitiveContains(search))
+          || (book.title + " " + book.author + " " + book.narrator).localizedCaseInsensitiveContains(search))
         && (shelf == "All" || (shelf == "Finished" ? book.state.finished : !book.state.finished))
-        && (genre == "All genres" || book.genreLabel == genre)
     }
     let sorted = result.sorted { a, b in
       switch sortOrder {
       case "title": return a.title.localizedStandardCompare(b.title) == .orderedAscending
       case "author": return a.author.localizedStandardCompare(b.author) == .orderedAscending
       case "recent": return a.createdAt > b.createdAt
-      case "played": return a.state.updatedAt > b.state.updatedAt
+      case "played": return a.state.updatedAt == b.state.updatedAt ? a.createdAt > b.createdAt : a.state.updatedAt > b.state.updatedAt
       case "duration": return a.duration < b.duration
       case "filename":
         return (a.tracks.first?.filename ?? "").localizedStandardCompare(
@@ -124,10 +127,24 @@ struct LibraryView: View {
     let chosen = sortOrder == "manual" ? result : sorted
     return reverseSort ? chosen.reversed() : chosen
   }
+  private var librarySections: some View {
+    Picker("Library view", selection: $category) {
+      Text("Books").tag(nil as LibraryCategory?)
+      ForEach(LibraryCategory.allCases) { Text(LocalizedStringKey($0.rawValue)).tag(Optional($0)) }
+    }.font(.subheadline).accessibilityIdentifier("librarySections")
+  }
+  @ViewBuilder private var categoryControl: some View {
+    if dynamicTypeSize.isAccessibilitySize { librarySections.pickerStyle(.menu) }
+    else { librarySections.pickerStyle(.segmented) }
+  }
   var body: some View {
     NavigationSplitView {
-      Group {
-        if store.books.isEmpty {
+      VStack(spacing: 0) {
+        categoryControl.padding(.horizontal, 16).padding(.vertical, 8)
+        Group {
+        if let category {
+          BrowseView(category: category, search: search)
+        } else if store.books.isEmpty {
           ContentUnavailableView {
             Label("Your next chapter starts here.", systemImage: "books.vertical")
           } description: {
@@ -138,15 +155,10 @@ struct LibraryView: View {
             Button("Import audiobooks", systemImage: "plus") { showImport = true }.buttonStyle(
               .borderedProminent
             ).accessibilityIdentifier("emptyImport")
+            Button("Try a free classic", systemImage: "book.closed") { showClassic = true }.buttonStyle(.bordered)
           }
         } else {
           List {
-            Picker("Genre", selection: $genre) {
-              Text("All genres").tag("All genres")
-              ForEach(BookGenre.allCases.filter { category in store.books.contains { $0.genreLabel == category.rawValue } }) { category in
-                Text(category.rawValue).tag(category.rawValue)
-              }
-            }.accessibilityIdentifier("genreShelf")
             Picker("Library shelf", selection: $shelf) {
               ForEach(["All", "Listening", "Finished"], id: \.self) { Text($0) }
             }.pickerStyle(.segmented).listRowSeparator(.hidden)
@@ -197,21 +209,42 @@ struct LibraryView: View {
                     Task { await player.open(book) }
                     selected = book.id
                   }
+                  if book.needsM4BConversion {
+                    Button("Finish import", systemImage: "arrow.clockwise") { Task { await store.finishImport(book.id) } }.disabled(store.busy)
+                  }
+                  Button("Remove from device", systemImage: "trash", role: .destructive) { pendingRemoval = book }.disabled(store.busy)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                  Button("Remove", systemImage: "trash", role: .destructive) { pendingRemoval = book }.disabled(store.busy)
+                  Button("Details", systemImage: "info.circle") { selected = book.id; showDetails = true }.tint(ListenTheme.accent)
                 }
             }.onMove { source, destination in
-              guard search.isEmpty, shelf == "All", selectedFolder == nil, genre == "All genres", sortOrder == "manual",
+              guard search.isEmpty, shelf == "All", selectedFolder == nil, sortOrder == "manual",
                 !reverseSort
               else { return }
               store.books.move(fromOffsets: source, toOffset: destination)
               store.save()
             }.moveDisabled(
-              !search.isEmpty || shelf != "All" || selectedFolder != nil || genre != "All genres" || sortOrder != "manual"
+              !search.isEmpty || shelf != "All" || selectedFolder != nil || sortOrder != "manual"
                 || reverseSort)
           }.listStyle(.plain).scrollContentBackground(.hidden)
         }
       }
-      .background(ListenTheme.background).navigationTitle("sovo.")
-      .searchable(text: $search, prompt: "Title or author")
+      }
+      .background(ListenTheme.background).navigationTitle("sovo.").navigationBarTitleDisplayMode(.inline)
+      .onAppear {
+        if !recentSortMigration { sortOrder = "played"; reverseSort = false; recentSortMigration = true }
+      }
+      .confirmationDialog("Remove this audiobook from this device?", isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }), titleVisibility: .visible) {
+        if let book = pendingRemoval {
+          Button("Remove from device", role: .destructive) { player.removeFromPlayback(book.id); store.remove(book); pendingRemoval = nil }
+        }
+      } message: { Text("Imported originals outside sovo. and any iCloud copy are kept. An iCloud copy may return when you sync.") }
+      .onChange(of: category) { _, _ in search = ""; selected = nil }
+      .searchable(text: $search, prompt: "Search your library")
+      .sheet(isPresented: $showClassic) {
+        DownloadImportView(url: URL(string: "https://archive.org/download/alices_adventures_1003/AlicesAdventuresInWonderlandVer4_librivox.m4b")!, classic: true)
+      }
       .toolbar {
         ToolbarItem(placement: .primaryAction) {
           Menu {
@@ -219,6 +252,7 @@ struct LibraryView: View {
             Button("Import a folder", systemImage: "folder.badge.plus") { showFolderImport = true }
             Button("Transfer from browser", systemImage: "wifi") { showBrowserTransfer = true }
             Button("Download a file", systemImage: "arrow.down.circle") { showDownload = true }
+            Button("Try a free classic", systemImage: "book.closed") { showClassic = true }
             Toggle("Combine selected files into one book", isOn: $combine)
           } label: {
             Image(systemName: "plus")
@@ -342,11 +376,15 @@ struct BookDetail: View {
             VStack(alignment: .leading, spacing: 8) {
               Text(book.title).font(.largeTitle.weight(.bold)).accessibilityAddTraits(.isHeader)
               Text(book.author).font(.title3).foregroundStyle(.secondary)
-              Label(book.genreLabel == "Uncategorized" ? "Genre awaiting a confident match" : book.genreLabel, systemImage: "tag")
+              Label(book.genreLabel, systemImage: "tag")
                 .font(.subheadline).foregroundStyle(.secondary)
               if !book.narrator.isEmpty {
                 Text("Narrated by \(book.narrator)").foregroundStyle(.secondary)
               }
+              if let year = book.publicationYear { LabeledContent("First published", value: String(year)) }
+              if let year = book.releaseYear { LabeledContent("Audio edition", value: String(year)) }
+              if let publisher = book.publisher { LabeledContent("Publisher", value: publisher) }
+              if let language = book.language { LabeledContent("Language", value: language) }
               Text("\(timeLabel(book.duration)) • \(book.chapters.count) chapters").font(
                 .subheadline
               ).foregroundStyle(.secondary)
@@ -367,9 +405,19 @@ struct BookDetail: View {
             .buttonStyle(.borderedProminent).disabled(player.loading || store.busy)
             .accessibilityIdentifier("startListening")
             ProgressView(value: book.progress)
+            if book.needsM4BConversion {
+              VStack(alignment: .leading, spacing: 8) {
+                Text("Original audio is ready to play. Finish the import to combine it into one M4B.").font(.subheadline).foregroundStyle(.secondary)
+                Button("Finish import", systemImage: "arrow.clockwise") { Task { await store.finishImport(book.id) } }.disabled(store.busy)
+              }
+            }
+            if let summary = book.summary, !summary.isEmpty { Text(summary).font(.body).textSelection(.enabled) }
+            if let source = book.metadataSource.flatMap(URL.init(string:)), source.scheme == "https", ["books.apple.com", "librivox.org"].contains(source.host ?? "") {
+              Link(source.host == "librivox.org" ? "Recording & credits · LibriVox" : "Edition details · Apple Books", destination: source).font(.footnote)
+            }
             if !book.chapters.isEmpty {
               Text("Chapters").font(.title2.weight(.semibold))
-              ForEach(book.chapters) { chapter in
+              ForEach(book.displayChapters) { chapter in
                 Button {
                   Task {
                     if player.bookID != book.id { await player.open(book, autoplay: false) }
@@ -390,7 +438,7 @@ struct BookDetail: View {
         }.background(ListenTheme.background).navigationTitle("Audiobook")
           .navigationBarTitleDisplayMode(.inline)
           .toolbar {
-            Button("Edit", systemImage: "pencil") { edit = true }
+            Button("Edit", systemImage: "pencil") { edit = true }.disabled(store.processingBookID == book.id)
             ShareLink(items: book.tracks.map { store.file(book, $0) }) {
               Label("Export audio", systemImage: "square.and.arrow.up")
             }

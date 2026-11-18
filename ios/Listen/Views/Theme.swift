@@ -15,7 +15,7 @@ struct BookArtwork: View {
     var body: some View {
         Group {
             if let filename = book.coverFilename, let image = UIImage(contentsOfFile: root.appendingPathComponent(book.id.uuidString).appendingPathComponent(filename).path) {
-                Image(uiImage: image).resizable().scaledToFill()
+                Image(uiImage: image).resizable().scaledToFit()
             } else {
                 Rectangle().fill(ListenTheme.accent.opacity(0.12)).overlay {
                     Image(systemName: "book.closed").font(.largeTitle).foregroundStyle(ListenTheme.accent)

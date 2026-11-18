@@ -56,14 +56,29 @@ struct DownloadImportView: View {
   @State private var text = ""
   @State private var busy = false
   @State private var error: String?
+  private let classic: Bool
+  init(url: URL? = nil, classic: Bool = false) {
+    _text = State(initialValue: url?.absoluteString ?? ""); self.classic = classic
+  }
   var body: some View {
     NavigationStack {
       Form {
+        if classic {
+          Section {
+            Label("Alice’s Adventures in Wonderland", systemImage: "book.closed").font(.title2.weight(.semibold))
+            Text("Lewis Carroll · read by Kara Shallenberg").foregroundStyle(.secondary)
+            Text("A complete classic in English. About 2 hours 47 minutes · 77 MB · M4B with chapters.").font(.subheadline)
+            Link("Source & recording credits · LibriVox", destination: URL(string: "https://librivox.org/alices-adventures-in-wonderland-by-lewis-carroll-4/")!)
+            Text("LibriVox identifies this recording as public domain in the USA. Check its status where you live before downloading.").font(.footnote).foregroundStyle(.secondary)
+          }
+        }
+        if !classic {
         TextField("HTTPS audio or ZIP URL", text: $text).textInputAutocapitalization(.never)
           .autocorrectionDisabled().keyboardType(.URL)
         Text(
           "Use a direct file URL you have permission to download. For authenticated media libraries, open Media servers in Settings."
         ).font(.footnote).foregroundStyle(.secondary)
+        }
         if let error { Text(error).foregroundStyle(.red) }
         if busy { ProgressView("Downloading…") }
       }.navigationTitle("Download a file").toolbar {
@@ -71,7 +86,7 @@ struct DownloadImportView: View {
           Button("Cancel") { dismiss() }.disabled(busy)
         }
         ToolbarItem(placement: .confirmationAction) {
-          Button("Download") { Task { await download() } }.disabled(busy || text.isEmpty)
+          Button(classic ? "Add to library" : "Download") { Task { await download() } }.disabled(busy || text.isEmpty)
         }
       }
     }
@@ -99,8 +114,19 @@ struct DownloadImportView: View {
       try FileManager.default.moveItem(at: temporary, to: target)
       let ids = await store.importFiles(
         [target],
-        enrich: true,
-        convert: true)
+        enrich: !classic,
+        convert: true,
+        title: classic ? "Alice’s Adventures in Wonderland" : nil,
+        author: classic ? "Lewis Carroll" : nil)
+      if classic {
+        for id in ids {
+          guard var book = store.books.first(where: { $0.id == id }) else { continue }
+          book.narrator = "Kara Shallenberg"; book.genre = BookGenre.fantasy.rawValue
+          book.publicationYear = 1865; book.releaseYear = 2010; book.publisher = "LibriVox"; book.language = "English"
+          book.metadataSource = "https://librivox.org/alices-adventures-in-wonderland-by-lewis-carroll-4/"
+          book.metadataRevision = 2; book.metadataLookupAt = Date(); store.update(book)
+        }
+      }
       if !ids.isEmpty {
         dismiss()
       } else {

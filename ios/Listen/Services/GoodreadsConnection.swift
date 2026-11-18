@@ -50,6 +50,7 @@ import Combine
     init(root: URL? = nil) {
         let configuration = WKWebViewConfiguration(); configuration.websiteDataStore = .default()
         configuration.defaultWebpagePreferences.allowsContentJavaScript = false
+        configuration.defaultWebpagePreferences.preferredContentMode = .desktop
         webView = WKWebView(frame: .zero, configuration: configuration)
         let root = root ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         file = root.appendingPathComponent("goodreads-shelves.json")
@@ -142,10 +143,13 @@ import Combine
         }
         webView.evaluateJavaScript(Self.shelfScript) { [weak self] result, error in
             guard let self, self.refreshing else { return }
+            if let object = result as? [String: Any], object["signedOut"] as? Bool == true {
+                self.failRefresh("Sign in to Goodreads on this device to refresh your shelves. Your saved books are kept.", signIn: true); return
+            }
             guard error == nil, let object = result as? [String:Any], object["valid"] as? Bool == true,
                   let rows = object["books"] as? [[String:Any]], let data = try? JSONSerialization.data(withJSONObject: rows),
                   let decoded = try? JSONDecoder().decode([GoodreadsBook].self, from: data) else {
-                self.failRefresh("Goodreads page could not be read. Open the connection or import your Goodreads CSV. Saved shelves are retained."); return
+                self.failRefresh("Goodreads did not return a readable shelf. Open the connection to check your sign-in, then try again. Your saved books are kept.", signIn: true); return
             }
             self.acceptPage(decoded, hasNext: object["next"] as? Bool == true)
         }
@@ -167,7 +171,11 @@ import Combine
         (() => {
           const rows = Array.from(document.querySelectorAll('tr.bookalike'));
           const shelfTable = document.querySelector('#books #booksBody, #booksBody');
-          const blocked = !!document.querySelector('form[action*="sign_in"],form[action*="signin"],input[type="password"],iframe[src*="recaptcha"]');
+          const visible = element => !!element && element.getClientRects().length > 0;
+          const signIn = Array.from(document.querySelectorAll('form[action*="sign_in"],form[action*="signin"],input[type="password"]')).some(visible);
+          const challenge = Array.from(document.querySelectorAll('iframe[src*="recaptcha"]')).some(visible);
+          const signedOut = !shelfTable && (signIn || /sign in to see|private profile|private library/i.test(document.body.innerText));
+          const blocked = challenge || signedOut || (signIn && rows.length === 0);
           const empty = /no books|haven.t added any books|0 books/i.test(document.querySelector('#books, #booksBody')?.textContent || '');
           return {books: rows.map(row => {
             const title = row.querySelector('td.title a.bookTitle,td.title a');
@@ -176,7 +184,7 @@ import Combine
             const image = row.querySelector('td.cover img');
             const id = title?.href.match(/\/book\/show\/(\d+)/)?.[1];
             return {id:id || row.id,title:(title?.textContent || '').trim(),author:(author?.textContent || '').trim(),shelf:(shelf?.textContent || 'to-read').trim(),cover:image?.src || null,url:title?.href || ''};
-          }).filter(b => b.id && b.title),next:!!document.querySelector('a.next_page:not(.disabled)'),valid:!blocked && !!shelfTable && (rows.length > 0 || empty)};
+          }).filter(b => b.id && b.title),next:!!document.querySelector('a.next_page:not(.disabled)'),signedOut,valid:!blocked && !!shelfTable && (rows.length > 0 || empty)};
         })()
         """#
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
@@ -208,6 +216,7 @@ import Combine
         guard let url = action.request.url else { decisionHandler(.cancel, preferences); return }
         let mainFrame = action.targetFrame?.isMainFrame ?? true
         preferences.allowsContentJavaScript = GoodreadsPrivacy.needsWebsiteScripts(url, interactive: showSignIn)
+        preferences.preferredContentMode = showSignIn ? .recommended : .desktop
         decisionHandler(privacyReady && GoodreadsPrivacy.allowsNavigation(url, mainFrame: mainFrame) ? .allow : .cancel, preferences)
     }
     func disconnect() {
@@ -283,7 +292,7 @@ enum GoodreadsPrivacy {
         if captcha(url) { return true }
         guard provider(url.host?.lowercased() ?? "") else { return false }
         if interactive, ["goodreads.com", "www.goodreads.com"].contains(url.host?.lowercased() ?? ""),
-           ["/book/show/", "/review/edit/", "/review/new/"].contains(where: { url.path.hasPrefix($0) }) { return true }
+           ["/book/show/", "/review/edit/", "/review/new/", "/review/list/"].contains(where: { url.path.hasPrefix($0) }) { return true }
         return ["/ap/", "/user/sign_in", "/user/sign_up", "/user/password"].contains { url.path.hasPrefix($0) }
     }
     static let rules: String = {

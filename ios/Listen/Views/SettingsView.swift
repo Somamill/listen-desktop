@@ -22,31 +22,37 @@ struct SettingsView: View {
           Toggle("iCloud sync", isOn: $cloud.enabled).onChange(
             of: cloud.enabled
           ) { _, _ in Task { await cloud.sync() } }
-          Text(cloud.status).font(.footnote).foregroundStyle(.secondary)
-          if let checked = cloud.lastChecked {
-            Text("Last checked: \(checked.formatted(date: .abbreviated, time: .shortened))")
-              .font(.footnote).foregroundStyle(.secondary)
+          VStack(alignment: .leading, spacing: 6) {
+            Text(cloud.status).font(.subheadline)
+            if let checked = cloud.lastChecked {
+              Text("Last checked: \(checked.formatted(date: .abbreviated, time: .shortened))")
+                .font(.caption).foregroundStyle(.secondary)
+            }
           }
           if cloud.accountNeedsConfirmation {
             Button("Use current iCloud account") { confirmCloudAccount = true }
               .accessibilityIdentifier("confirmCloudAccount")
           }
-          Toggle("Sync Goodreads shelves with iCloud", isOn: $goodreads.syncEnabled).disabled(!cloud.enabled)
-          Text("Shares your Goodreads profile link and saved shelves between your devices. Passwords and website sessions stay on each device; signing in again may be needed.")
-            .font(.footnote).foregroundStyle(.secondary)
           Button("Sync now", systemImage: "arrow.triangle.2.circlepath") {
             Task { await cloud.sync() }
           }.disabled(cloud.syncing || !cloud.enabled || cloud.accountNeedsConfirmation)
+          DisclosureGroup("What syncs") {
+          Toggle("Goodreads shelves", isOn: $goodreads.syncEnabled).disabled(!cloud.enabled)
+          Text("Your library, listening place and saved Goodreads shelves can follow you between devices. Goodreads passwords and sign-in sessions stay on each device.")
+            .font(.footnote).foregroundStyle(.secondary)
           Text("Removing a book from this device keeps its iCloud copy. It can appear again after syncing.")
             .font(.footnote).foregroundStyle(.secondary)
           Text(
-            "Books download before playback and remain available offline. Signed builds need an enabled iCloud container. This app’s iCloud library is separate from your Mac’s existing audiobook folder; use Files to import from it."
+            "Books download before playback and stay available offline. To bring books from another iCloud Drive folder, import them with Files."
           ).font(.footnote).foregroundStyle(.secondary)
+          }
         }
         Section("Your library") {
+          DisclosureGroup("Imports & metadata") {
           Text("New imports automatically find metadata and covers, then create one M4B audiobook when conversion is needed. Existing M4B files are not converted again.")
           Text("Embedded tags and covers come first. Missing details are matched against Apple Books and Open Library using the title and author; audio is never uploaded. Original audio stays on your device. AAC conversion is lossy and needs extra storage.")
             .font(.footnote).foregroundStyle(.secondary)
+          }
         }
         Section("You") {
           TextField("Your name (optional)", text: $readerName).textContentType(.nickname)

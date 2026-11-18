@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1430"
+   LastUpgradeVersion = "1600"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES"
+      buildArchitectures = "Automatic"
       runPostActionsOnFailure = "NO">
       <BuildActionEntries>
          <BuildActionEntry
@@ -16,7 +17,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-               BuildableName = "sovo.app"
+               BuildableName = "Listen.app"
                BlueprintName = "Listen"
                ReferencedContainer = "container:Listen.xcodeproj">
             </BuildableReference>
@@ -33,7 +34,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-            BuildableName = "sovo.app"
+            BuildableName = "Listen.app"
             BlueprintName = "Listen"
             ReferencedContainer = "container:Listen.xcodeproj">
          </BuildableReference>
@@ -80,7 +81,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-            BuildableName = "sovo.app"
+            BuildableName = "Listen.app"
             BlueprintName = "Listen"
             ReferencedContainer = "container:Listen.xcodeproj">
          </BuildableReference>
@@ -97,7 +98,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE4E39E9375E98C59747CAF6"
-            BuildableName = "sovo.app"
+            BuildableName = "Listen.app"
             BlueprintName = "Listen"
             ReferencedContainer = "container:Listen.xcodeproj">
          </BuildableReference>

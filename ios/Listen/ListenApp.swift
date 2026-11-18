@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 @main @MainActor struct ListenApp: App {
   @StateObject private var store: LibraryStore
@@ -36,9 +37,20 @@ import SwiftUI
     _goodreads = StateObject(wrappedValue: reading)
     _servers = StateObject(wrappedValue: ServerLibrary(root: library.root))
     _transfer = StateObject(wrappedValue: LocalTransfer())
-    if testing && library.books.isEmpty, let sample = Bundle.main.url(forResource: "Sample", withExtension: "mp3") {
-      Task { await library.importFiles([sample], enrich: false) }
+    #if DEBUG
+    if testing && library.books.isEmpty {
+      let sample = FileManager.default.temporaryDirectory.appendingPathComponent("Sample recording.wav")
+      if let format = AVAudioFormat(standardFormatWithSampleRate: 8000, channels: 1),
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 96_000) {
+        buffer.frameLength = 96_000
+        if let samples = buffer.floatChannelData?[0] { samples.initialize(repeating: 0, count: 96_000) }
+        if let file = try? AVAudioFile(forWriting: sample, settings: format.settings) {
+          try? file.write(from: buffer)
+          Task { await library.importFiles([sample], enrich: false, convert: false) }
+        }
+      }
     }
+    #endif
   }
   var body: some Scene {
     WindowGroup {

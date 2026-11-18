@@ -14,13 +14,17 @@ When you enable iCloud library sync, library files and metadata are sent to your
 
 ## Automatic metadata lookup
 
-Imports first read embedded tags and artwork. Automatic matching sends book title and author text to Apple Books Search and, when needed, Open Library, and downloads matched cover images. Audio is never uploaded for metadata. Lookup requires a network connection; unavailable or uncertain matches leave existing details intact. Missing covers are retried automatically, at most daily per book. You can still edit book information yourself.
+Imports first read embedded tags and artwork. Automatic matching sends book title and author text to Apple Books Search and, when needed, Open Library, and downloads matched cover images. A matching public Apple Books edition page can provide narrator, publisher, language and release-year credits; title/author and running time are checked before applying edition-specific credits. Audio is never uploaded for metadata. Lookup requires a network connection; unavailable or uncertain matches leave existing details intact. Missing covers are retried automatically, at most daily per book. You can still edit book information yourself.
+
+## Public author and narrator profiles
+
+Opening author/narrator browsing can send a person’s name to Wikipedia and Wikimedia Commons to retrieve a matching biography, portrait and image-license credits. These services receive normal connection information such as IP address. Profiles are cached locally in memory; no audio or Goodreads credentials are sent. Unavailable or ambiguous profiles keep a placeholder. Source and license links accompany retrieved biographies and portraits.
 
 ## Goodreads
 
 Connecting Goodreads opens Goodreads in an app-specific website session. Sign-in information is submitted to Goodreads or its sign-in provider, and website cookies remain in the app's WebKit storage. Goodreads and any pages opened there are governed by their respective privacy policies. The app stores your selected profile identifier and a cache of your reading shelves, optionally synchronized through your private iCloud; it does not provide a developer-hosted copy of your account. You may disconnect Goodreads and remove the cached connection in Settings. A CSV import is available instead of website sign-in.
 
-The embedded session blocks third-party webpage resources except Goodreads/Amazon provider assets and Google CAPTCHA resources needed for authentication. Website JavaScript is enabled for authentication and explicitly opened Goodreads book/review pages, and disabled during background shelf refresh; the app reads shelf HTML with its own code. Changes made through an interactive Goodreads page are submitted directly to Goodreads. If these controls cannot initialize, the app does not load Goodreads pages and offers retry or CSV import. No advertising SDK, IDFA access or developer-operated cross-app tracking is included.
+The embedded session blocks third-party webpage resources except Goodreads/Amazon provider assets and Google CAPTCHA resources needed for authentication. Website JavaScript is enabled for authentication and explicitly opened Goodreads book/review/shelf pages, and disabled during background shelf refresh; the app reads shelf HTML with its own code. Changes made through an interactive Goodreads page are submitted directly to Goodreads. If these controls cannot initialize, the app does not load Goodreads pages and offers retry or CSV import. No advertising SDK, IDFA access or developer-operated cross-app tracking is included.
 
 Goodreads/Amazon may retain account information, identifiers, approximate network location and website activity for their account, security, personalization and analytics purposes. The Store privacy label conservatively includes this optional provider data. These practices are governed by the [Goodreads Privacy Policy](https://www.goodreads.com/about/privacy) and Amazon's linked notice. The resource controls do not erase information already held by a provider or promise to control its server-side processing.
 
@@ -30,7 +34,7 @@ Audiobookshelf and Jellyfin connections send authentication and download request
 
 ## Browser transfer and file downloads
 
-A browser transfer starts only when you enable a temporary session. It uses local HTTP and a secret link on a trusted network; close the transfer screen to stop it. Do not use this feature on an untrusted network. Direct file downloads use HTTPS. Download hosts and your network provider may process connection information under their own policies.
+A browser transfer starts only when you enable a temporary session. It uses local HTTP and a secret link on a trusted network; close the transfer screen to stop it. Do not use this feature on an untrusted network. Direct file downloads use HTTPS. The optional free-classic entry downloads a LibriVox recording from Internet Archive when you choose to add it; the source page, recording credits and regional copyright notice are shown before download. Download hosts and your network provider may process connection information under their own policies.
 
 ## Widgets and share extension
 

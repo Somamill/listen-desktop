@@ -1,6 +1,62 @@
 import XCTest
 
 final class ListenUITests:XCTestCase {
+    func testBrowseGroupsAndNativeRemoval() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting"]; app.launch()
+        let book = app.buttons["book-Sample recording"]
+        XCTAssertTrue(book.waitForExistence(timeout: 30))
+        XCTAssertTrue(app.segmentedControls["librarySections"].waitForExistence(timeout: 10))
+        app.buttons["Authors"].tap()
+        XCTAssertTrue(app.staticTexts["Unknown author"].waitForExistence(timeout: 10))
+        let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "Browse authors"; shot.lifetime = .keepAlways; add(shot)
+        app.buttons["Narrators"].tap()
+        XCTAssertTrue(app.staticTexts["Not credited"].waitForExistence(timeout: 10))
+        app.buttons["Books"].tap()
+        book.swipeLeft()
+        app.buttons["Remove"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["Remove from device"].waitForExistence(timeout: 10))
+        app.buttons["Remove from device"].tap()
+        XCTAssertTrue(app.buttons["emptyImport"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Try a free classic"].exists)
+    }
+    func testStoreCaptureWithFreeClassic() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["SOVO_STORE_CAPTURE"] == "1", "Explicit network capture run only")
+        executionTimeAllowance = 600
+        let app = XCUIApplication(); app.launch()
+        let book = app.buttons["book-Alice’s Adventures in Wonderland"]
+        if !book.waitForExistence(timeout: 5) {
+            let classic = app.buttons["Try a free classic"]
+            XCTAssertTrue(classic.waitForExistence(timeout: 20)); classic.tap()
+            app.buttons["Add to library"].tap()
+            XCTAssertTrue(book.waitForExistence(timeout: 300), "The public-domain classic must import through the real app")
+        }
+        func capture(_ name: String) {
+            let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "Store-" + name; shot.lifetime = .keepAlways; add(shot)
+        }
+        capture("Library")
+        app.buttons["Authors"].tap()
+        let author = app.buttons["category-Lewis Carroll"]
+        XCTAssertTrue(author.waitForExistence(timeout: 15))
+        capture("Authors")
+        author.tap()
+        _ = app.links["Wikipedia · biography & portrait credits"].waitForExistence(timeout: 30)
+        capture("Author-profile")
+        app.buttons["You"].firstMatch.tap()
+        app.buttons["Library"].firstMatch.tap()
+        app.buttons["Books"].tap()
+        XCTAssertTrue(book.waitForExistence(timeout: 10)); book.tap()
+        let pause = app.buttons["playerPlayPause"]
+        XCTAssertTrue(pause.waitForExistence(timeout: 20)); XCTAssertEqual(pause.label, "Pause")
+        capture("Player")
+        app.buttons["Chapters"].firstMatch.tap()
+        capture("Chapters")
+        app.buttons["Done"].firstMatch.tap()
+        pause.tap(); app.buttons["closePlayer"].tap()
+        capture("Mini-player")
+        book.swipeLeft(); app.buttons["Details"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["startListening"].waitForExistence(timeout: 15))
+        capture("Book-details")
+    }
     override func setUp() { super.setUp(); continueAfterFailure = false; executionTimeAllowance = 90 }
     func testLibraryPlayerAndSettings() throws {
         let app=XCUIApplication();app.launchArguments=["--uitesting"];app.launch()
@@ -65,10 +121,10 @@ final class ListenUITests:XCTestCase {
     }
     func testGenreShelfAndAirPodsSleepGuide() throws {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting"]; app.launch()
-        let genre = app.descendants(matching: .any).matching(identifier: "genreShelf").firstMatch
-        XCTAssertTrue(genre.waitForExistence(timeout: 30))
-        genre.tap()
-        let uncategorized = app.buttons["Uncategorized"].firstMatch
+        let sections = app.segmentedControls["librarySections"]
+        XCTAssertTrue(sections.waitForExistence(timeout: 30))
+        app.buttons["Genres"].tap()
+        let uncategorized = app.buttons["category-Uncategorized"]
         XCTAssertTrue(uncategorized.waitForExistence(timeout: 10)); uncategorized.tap()
         XCTAssertTrue(app.staticTexts["Sample recording"].firstMatch.waitForExistence(timeout: 10))
         app.buttons["Settings"].firstMatch.tap()

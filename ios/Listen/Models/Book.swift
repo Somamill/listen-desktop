@@ -32,6 +32,15 @@ struct AudioBook: Codable, Identifiable, Equatable {
   var title: String
   var author: String = "Unknown author"
   var narrator: String = ""
+  var publicationYear: Int? = nil
+  var releaseYear: Int? = nil
+  var publisher: String? = nil
+  var language: String? = nil
+  var summary: String? = nil
+  var metadataSource: String? = nil
+  var sourceTitle: String? = nil
+  var conversionPending: Bool? = nil
+  var metadataRevision: Int? = nil
   var genre: String? = nil
   var genreLabel: String { BookGenre.classify([genre ?? ""]).rawValue }
   var folder: String = ""
@@ -47,6 +56,11 @@ struct AudioBook: Codable, Identifiable, Equatable {
     !tracks.isEmpty && (tracks.count > 1 || !tracks[0].filename.lowercased().hasSuffix(".m4b"))
   }
   var duration: Double { tracks.reduce(0) { $0 + $1.duration } }
+  var displayChapters: [Chapter] {
+    chapters.enumerated().map { index, chapter in
+      var result = chapter; result.title = String(format: "Chapter - %02d", index + 1); return result
+    }
+  }
   var progress: Double { duration > 0 ? min(1, max(0, state.position / duration)) : 0 }
   mutating func merge(_ remote: Self) {
     guard remote.id == id else { return }
@@ -55,6 +69,14 @@ struct AudioBook: Codable, Identifiable, Equatable {
     self = metadataUpdatedAt > remote.metadataUpdatedAt ? local : remote
     // Older app versions do not know these optional metadata fields.
     if genre == nil { genre = local.genre ?? remote.genre }
+    publicationYear = publicationYear ?? local.publicationYear ?? remote.publicationYear
+    releaseYear = releaseYear ?? local.releaseYear ?? remote.releaseYear
+    publisher = publisher ?? local.publisher ?? remote.publisher
+    language = language ?? local.language ?? remote.language
+    summary = summary ?? local.summary ?? remote.summary
+    metadataSource = metadataSource ?? local.metadataSource ?? remote.metadataSource
+    sourceTitle = sourceTitle ?? local.sourceTitle ?? remote.sourceTitle
+    metadataRevision = [local.metadataRevision, remote.metadataRevision].compactMap { $0 }.max()
     metadataLookupAt = [local.metadataLookupAt, remote.metadataLookupAt].compactMap { $0 }.max()
     state = progress
     ensureBasicMetadata()

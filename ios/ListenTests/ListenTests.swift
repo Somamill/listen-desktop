@@ -118,6 +118,54 @@ import XCTest
     let preserved = try await MetadataService.enrich(enriched, directory: root, session: session)
     XCTAssertEqual(preserved, enriched)
   }
+  func testEditionMatchUsesCompleteFilenameRatherThanShortAlbum() {
+    var book = AudioBook(title: "The Silk Roads (Unabridged)", author: "Peter Frankopan")
+    book.sourceTitle = "The Silk Roads A New History of the World (Unabridged) - 001"
+    let children = MetadataService.Candidate(title: "The Silk Roads", author: "Peter Frankopan", cover: nil)
+    let full = MetadataService.Candidate(title: "The Silk Roads: A New History of the World (Unabridged)", author: "Peter Frankopan", cover: nil)
+    XCTAssertEqual(MetadataService.bestMatch([children, full], for: book)?.title, full.title)
+  }
+  func testAudiobookCreditsRequireMatchingEditionAndDuration() {
+    var book = AudioBook(title: "A history", author: "The Author")
+    book.tracks = [AudioTrack(filename: "audio.mp3", duration: 1000)]
+    let source = URL(string: "https://books.apple.com/us/audiobook/id123")!
+    var edition: [String: Any] = ["@type": "Audiobook", "name": "A history", "author": "The Author", "duration": "PT16M40S", "readBy": "A Narrator", "provider": "A Publisher", "datePublished": "2020-01-01", "inLanguage": "en"]
+    let result = AppleBookEdition.apply(edition, to: book, source: source)
+    XCTAssertEqual(result.narrator, "A Narrator"); XCTAssertEqual(result.releaseYear, 2020)
+    XCTAssertEqual(result.publisher, "A Publisher"); XCTAssertEqual(result.language, "en")
+    edition["duration"] = "PT3H"
+    XCTAssertEqual(AppleBookEdition.apply(edition, to: book, source: source), book)
+    edition["duration"] = "PT16M40S"; edition["author"] = "Someone Else"
+    XCTAssertEqual(AppleBookEdition.apply(edition, to: book, source: source), book)
+    XCTAssertNil(AppleBookEdition.duration("not a duration"))
+    XCTAssertEqual(MetadataService.plainText("&lt;b&gt;A &amp;amp; B&lt;/b&gt;&lt;br /&gt;&#x41;"), "A & B\nA")
+  }
+  func testMinimalChapterLabelsKeepIdentityAndTiming() {
+    var book = AudioBook(title: "Book")
+    book.chapters = [Chapter(title: "A long source title 001", start: 0), Chapter(title: "A long source title 002", start: 100)]
+    XCTAssertEqual(book.displayChapters.map(\.title), ["Chapter - 01", "Chapter - 02"])
+    XCTAssertEqual(book.displayChapters.map(\.id), book.chapters.map(\.id))
+    XCTAssertEqual(book.displayChapters.map(\.start), [0, 100])
+    XCTAssertEqual(book.chapters[0].title, "A long source title 001")
+  }
+  func testPausedPlayerReloadsAnUpdatedAudioFile() async throws {
+    let store = LibraryStore(root: root.appendingPathComponent("replacement"))
+    await store.importFiles([try sample()], enrich: false, convert: false)
+    var book = try XCTUnwrap(store.books.first)
+    let cloud = CloudLibrary(store: store); cloud.enabled = false
+    let player = AudioController(store: store, cloud: cloud)
+    await player.open(book, autoplay: false); player.pause()
+    let replacement = store.directory(book).appendingPathComponent("replacement.mp3")
+    try FileManager.default.copyItem(at: store.file(book, book.tracks[0]), to: replacement)
+    book = try XCTUnwrap(store.books.first); book.tracks[0].filename = replacement.lastPathComponent
+    store.update(book); player.resume()
+    for _ in 0..<40 {
+      if (player.player?.currentItem?.asset as? AVURLAsset)?.url == replacement { break }
+      try await Task.sleep(for: .milliseconds(100))
+    }
+    XCTAssertEqual((player.player?.currentItem?.asset as? AVURLAsset)?.url, replacement)
+    player.pause()
+  }
   func testReadingWeekAndStreakUseRecordedTimeWithoutInventedDays() {
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: Date())
@@ -321,7 +369,7 @@ import XCTest
     XCTAssertThrowsError(try MP4Chapters.boxes(entry))
   }
   func sample() throws -> URL {
-    let url = try XCTUnwrap(Bundle.main.url(forResource: "Sample", withExtension: "mp3"))
+    let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Sample", withExtension: "mp3"))
     guard try Data(contentsOf: url).count > 90_000 else {
       throw ListenError.message(
         "The packaged sample audio is missing or empty. Hydrate source resources and rebuild.")

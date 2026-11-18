@@ -1,3 +1,27 @@
+# sovo. 1.0.1 (11) — aktueller Prüfstand
+
+18. November 2026, Asia/Tokyo. Die nachfolgenden älteren Abschnitte dokumentieren Build 9 und sind historisch.
+
+| Prüfung | Ergebnis | Grenze |
+| --- | --- | --- |
+| Native Logiktests, finaler Build-11-Quellstand | PASS | 44 bestanden, keine Fehler/Skips |
+| Kombinierte Library und bestätigtes Swipe-Entfernen | PASS | Nativer Zieltestlauf: 46 Tests einschließlich Logik |
+| iOS- und Mac-Releasearchive, Signaturen, Apple-Validierung | PASS | Keine Aussage über Review-Freigabe |
+| Beide Apple-Uploads Build 11 | PASS | Beide Verarbeitung VALID, nicht eingereicht |
+| Installation iPhone 14 / iOS 27.2.1 über USB | PASS | Bestehende Bibliothek erhalten |
+| Automatische Metadaten des vorhandenen Langhörbuchs | PASS | Autor, Sprecher, Genre, Cover, Audiojahr, Verlag und Sprache geprüft; Erstveröffentlichungsjahr unbekannt |
+| 34 MP3s / 34 Kapitel / rund 24 h 14 min → M4B | OFFEN | 50 % erreicht, noch kein verifiziertes Endergebnis; Originale erhalten |
+| Aktuelle iPad-/Mac-Visuals und vollständiger Cover-Test | OFFEN | Simulator-26.5-Startfehler; kein Ersatz durch HTML-Mockups |
+| Privates Goodreads-Login, Zwei-Geräte-iCloud, AirPods-Schlafpause | UNVERIFIED | Softwaretests ersetzen diese Hardware-/Kontoprüfungen nicht |
+
+Der direkte Gerätezugriff funktioniert mit den installierten libimobiledevice/pymobiledevice3-Werkzeugen über USB, ohne iPhone Mirroring und ohne Neustart fremder Apple-Dienste. Der lange Export wird durch Vordergrund-Wachhaltung und verfügbare fortgesetzte Hintergrundverarbeitung unterstützt; sein Erfolg ist für dieses Buch noch nicht bestätigt. Der unveränderte Fortschritt muss weiter diagnostiziert werden, bevor das Update eingereicht wird.
+
+Metadaten gleichen den vollständigeren Quelltitel und bei Audioeditionen auch Autor und Laufzeit ab. Genres werden aus dem besten verfügbaren Treffer übernommen; ungesicherte Ausgabenfakten bleiben unbekannt. Personenbilder benötigen nachvollziehbare Wikimedia-Lizenz und Credits. Die optionale LibriVox-Alice-Ausgabe bietet eine frei zugängliche Testquelle mit regionalem Rechtehinweis; Test-MP3s liegen nur im Testbundle.
+
+Die explizite Eigentümer-Ausnahme für die zwölf UI-Sprachen gilt nur für dieses bereits laufende Update. Store-Einreichung und neue Marketingbilder sind noch nicht abgeschlossen. GitHub Actions bleiben deaktiviert.
+
+---
+
 # sovo. 1.0.1 (9) — Integrationen und Prüfstand
 
 Stand: **18. November 2026**, Asia/Tokyo. Ergänzung zur [Integrationsrecherche](INTEGRATION-RESEARCH.de.md). Dieser Bericht unterscheidet ausgeführte Softwaretests, vorbereitete Gerätepakete und noch offene Hardwaretests.

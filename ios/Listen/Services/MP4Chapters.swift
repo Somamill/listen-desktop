@@ -135,6 +135,7 @@ struct MP4Chapters {
         func copy(_ start: UInt64, _ count: UInt64) throws {
             try reader.seek(toOffset: start); var remaining = count
             while remaining > 0 {
+                try Task.checkCancellation()
                 guard let chunk = try reader.read(upToCount: Int(min(remaining, 1_048_576))), !chunk.isEmpty else { throw ListenError.message("The audio ended unexpectedly.") }
                 try writer.write(contentsOf: chunk); remaining -= UInt64(chunk.count)
             }

@@ -118,7 +118,8 @@ import Foundation
           "Choose MP3, M4B, M4A, FLAC, WAV, AAC, or AIFF files, or a folder containing them.")
       }
       sources.sort {
-        $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+        let a = $0.deletingLastPathComponent().path, b = $1.deletingLastPathComponent().path
+        return a == b ? $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending : a.localizedStandardCompare(b) == .orderedAscending
       }
       let groups: [[URL]]
       if combine, inputRoots.count == 1,
@@ -159,17 +160,21 @@ import Foundation
               "Online metadata was unavailable for \(book.title); embedded details were kept.")
           }
         }
-        if enrich { book.metadataLookupAt = Date() }
+        if enrich { book.metadataLookupAt = Date(); book.metadataRevision = 2 }
+        book.conversionPending = convert && book.needsM4BConversion
+        commitPrepared(book)
         if convert && book.needsM4BConversion {
           activity = "Converting to M4B…"
           do {
-            book = try await M4BConverter.convert(book, directory: directory(book))
+            book = try await M4BConverter.convert(book, directory: directory(book), progress: { [weak self] progress in
+              self?.activity = progress >= 1 ? "Finishing chapters and checking audio…" : "Converting to M4B · \(Int(progress * 100))%"
+            }, didConvert: { [weak self] in self?.commitPrepared($0) })
           } catch {
             warnings.append(
-              "Imported the original audio. M4B conversion did not finish: \(error.localizedDescription)")
+              "Original audio is ready. M4B creation was interrupted; finish the import with sovo. open. \(error.localizedDescription)")
           }
         }
-        update(book)
+        commitPrepared(book)
         processingBookID = nil
         imported.append(book)
         created.append(book.id)
@@ -182,27 +187,46 @@ import Foundation
     guard !busy else { return }
     busy = true
     defer { busy = false; activity = "" }
-    for original in books where MetadataService.needsEnrichment(original, directory: directory(original))
-      && Date().timeIntervalSince(original.metadataLookupAt ?? .distantPast) > 86_400 {
+    for original in books where (original.metadataRevision ?? 0) < 2 || (MetadataService.needsEnrichment(original, directory: directory(original))
+      && Date().timeIntervalSince(original.metadataLookupAt ?? .distantPast) > 86_400) {
       guard !Task.isCancelled, waitingImports == 0 else { return }
       activity = "Completing book details and genres…"
       let enriched = try? await MetadataService.enrich(original, directory: directory(original))
       guard let index = books.firstIndex(where: { $0.id == original.id }) else { continue }
       // Playback or manual edits may have changed the book while the network request ran.
-      if let enriched {
-        if books[index].author == original.author { books[index].author = enriched.author }
-        if books[index].genre == original.genre { books[index].genre = enriched.genre }
-        if books[index].coverFilename == original.coverFilename { books[index].coverFilename = enriched.coverFilename }
+      if var enriched, books[index].metadataUpdatedAt == original.metadataUpdatedAt {
+        enriched.state = books[index].state; enriched.bookmarks = books[index].bookmarks
+        books[index] = enriched
         books[index].metadataUpdatedAt = Date()
       }
       books[index].metadataLookupAt = Date()
+      books[index].metadataRevision = 2
       save()
     }
+  }
+  func finishImport(_ id: UUID) async {
+    guard !busy, var book = books.first(where: { $0.id == id }), book.needsM4BConversion else { return }
+    busy = true; processingBookID = id
+    defer { busy = false; processingBookID = nil; activity = "" }
+    book.sourceTitle = book.sourceTitle ?? book.chapters.first?.title
+    book.conversionPending = true; update(book)
+    do {
+      book = try await M4BConverter.convert(book, directory: directory(book), progress: { [weak self] progress in
+        self?.activity = progress >= 1 ? "Finishing chapters and checking audio…" : "Converting to M4B · \(Int(progress * 100))%"
+      }, didConvert: { [weak self] in self?.commitPrepared($0) })
+      if let latest = books.first(where: { $0.id == id }) { book.state = latest.state; book.bookmarks = latest.bookmarks }
+      update(book); notice = "M4B ready. Original files are retained."
+    } catch { notice = "Original audio is ready. M4B creation was interrupted. Keep sovo. open and try Finish import again. \(error.localizedDescription)" }
+  }
+  private func commitPrepared(_ converted: AudioBook) {
+    guard let latest = books.first(where: { $0.id == converted.id }) else { return }
+    var book = converted; book.state = latest.state; book.bookmarks = latest.bookmarks
+    update(book)
   }
   func remove(_ book: AudioBook) {
     // Local removal only. No cloud deletion is implied, so another device can restore it.
     do {
-      try FileManager.default.removeItem(at: directory(book))
+      if FileManager.default.fileExists(atPath: directory(book).path) { try FileManager.default.removeItem(at: directory(book)) }
       books.removeAll { $0.id == book.id }
       save()
     } catch { self.error = error.localizedDescription }

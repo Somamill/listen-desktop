@@ -84,7 +84,10 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>processing</string>
 	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array><string>io.github.somamill.listen.mobile.conversion</string></array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchScreen</key>
