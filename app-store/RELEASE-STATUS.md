@@ -1,6 +1,6 @@
 # 1.0.1 (11) — current release status, 18 November 2026
 
-**Uploaded and processed, not submitted or released.** Both Apple builds are VALID:
+**Uploaded and processed, not submitted or released.** Both Apple builds are VALID and selected on the respective 1.0.1 drafts (verified through the Apple API):
 - iOS/iPadOS: `40145b36-00cd-4cc0-926c-112e5dc163fc`.
 - macOS: `c7319693-d2a5-456d-988f-45b077e5166a`.
 
