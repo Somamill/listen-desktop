@@ -21,9 +21,19 @@ Local checks: community Python logic uses `python3 -m unittest discover -s tests
 <!-- app-store-growth:start -->
 ## App Store release and presentation rules
 
-Before Store metadata, screenshots, previews, creative assets or submission work, read `app-store/MARKETING.md` and the [pinned shared playbook](https://github.com/Somamill/dot-brand-kit/blob/9e3a3941759d6d6d731d6739f102f2f84bb199f4/docs/APP_STORE_PLAYBOOK.md) using the GitHub connector/CLI or an exact matching local checkout. Recheck Apple's current requirements and the actual App Store Connect state; do not silently skip the policy if unavailable.
+Before Store metadata, screenshots, previews, creative assets or submission work, read `app-store/MARKETING.md` and the [locally verified shared playbook](.agent-tools/requirements/APP_STORE_PLAYBOOK.md) using the GitHub connector/CLI or an exact matching local checkout. Recheck Apple's current requirements and the actual App Store Connect state; do not silently skip the policy if unavailable.
 
 Produce benefit-led feature cards around real native Store-build captures, with app-specific identity and feature-to-evidence coverage. Keep screenshots, app previews, optional creative assets and private physical-review demos distinct. Verify ASO/localization, current icon, supported devices, media rights, field limits and final rendered exports. Assess eligible Asset Library/PPO/custom pages/analytics rather than assuming every tool applies to Mac. Record the playbook's release packet, measured results and omissions. No invented UI, awards, metrics, catalogue or unshipped feature claims.
 
 Use Impeccable/Hallmark for presentation review and Hyperframes for actual video work. Prefer existing background APIs/tools, retain publishing authorization boundaries, and keep Actions/automatic delivery off. Updating this policy alone does not authorize Apple publication or paid advertising.
 <!-- app-store-growth:end -->
+
+<!-- connected-requirements:start -->
+## Connected agent requirements and project design ownership
+
+Before work, run `python3 .agent-tools/run.py requirements`; if approved shared requirements changed, run it with `--update`, review and commit the managed diff. Read `.agent-tools/requirements/AGENT_DEVELOPMENT.md`, `TOOL_CATALOG.md` and `.agent-tools/PROJECT_CONTEXT.md`, then the applicable local design/native/Store instructions. The updater downloads documentation/data only and must preserve local edits; no Actions or permanent service is introduced.
+
+Agents working on this repo maintain PROJECT_CONTEXT.md and the actual design sources in the same PR when behavior, UI, tools, localization or acceptance constraints change. Use the strongest relevant compatible background tools, install/configure missing official tools when needed, exploit local hardware where useful, and verify actual output/quality. Do not run every tool unnecessarily or replace native/visual validation with a browser/compile check.
+
+UI/release work must read `LOCALIZATION.md` and `LANGUAGES.json`: future system/per-app language defaults and twelve-language coverage are release requirements, not proof of implementation. Dictionary/media/learning content is separate. Store work also reads `APP_STORE_PLAYBOOK.md` and `TREND_RESEARCH.md`: refresh current cross-category/financial-vs-popularity evidence and keywords, and inspect continuous feature-card seams/standalone readability where used. Missing required coverage/evidence must be reported, not silently waived. Preserve existing owner authorization, privacy, project identity and Actions-off policy.
+<!-- connected-requirements:end -->

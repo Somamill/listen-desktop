@@ -21,4 +21,4 @@ Use adopted dot. type/spacing and the listen/sovo accent without renaming stable
 
 ## Shared release rules
 
-Read the [adopted App Store playbook](https://github.com/Somamill/dot-brand-kit/blob/9e3a3941759d6d6d731d6739f102f2f84bb199f4/docs/APP_STORE_PLAYBOOK.md) before producing assets or changing App Store Connect. Policy revision: `9e3a3941759d6d6d731d6739f102f2f84bb199f4`. Its release-packet fields are required; retain the app-specific review/build instructions as well.
+Read the [adopted App Store playbook](../.agent-tools/requirements/APP_STORE_PLAYBOOK.md) before producing assets or changing App Store Connect. Policy provenance is recorded in `.agent-tools/requirements/source.json`; check/update it before work. Its release-packet fields are required; retain the app-specific review/build instructions as well.
