@@ -5,6 +5,23 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 VERSION=next(ast.literal_eval(node.value) for node in ast.parse((ROOT/'listen_app/__init__.py').read_text()).body if isinstance(node,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='__version__' for target in node.targets))
 def run(args,**kwargs):subprocess.run([str(v) for v in args],check=True,**kwargs)
+def sign_bundle(app,entitlements,identity,keychain=None):
+    def sign(path,ent=None):
+        args=['codesign','--force','--sign',identity]
+        if keychain:args+=['--keychain',keychain]
+        if identity!='-':args+=['--options','runtime','--timestamp']
+        if ent:args+=['--entitlements',ent]
+        run([*args,path])
+    if identity!='-':
+        magic={b'\xcf\xfa\xed\xfe',b'\xce\xfa\xed\xfe',b'\xfe\xed\xfa\xcf',b'\xfe\xed\xfa\xce',b'\xca\xfe\xba\xbe',b'\xca\xfe\xba\xbf'}
+        for path in sorted(app.rglob('*'),key=lambda p:len(p.parts),reverse=True):
+            if path.is_symlink():continue
+            if path.is_file():
+                with path.open('rb') as source:header=source.read(4)
+                if header in magic:sign(path)
+            elif path.suffix=='.framework':sign(path)
+    sign(app,entitlements)
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--dmg',action='store_true');args=parser.parse_args()
     if sys.platform!='darwin':raise SystemExit('Build the native app on macOS.')
@@ -50,8 +67,21 @@ def main():
     for attribute in ('com.apple.FinderInfo','com.apple.ResourceFork'):
         subprocess.run(['xattr','-dr',attribute,str(app)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
     # PyInstaller signs embedded binaries first; sign the outer native bundle last.
-    run(['codesign','--force','--entitlements',ent,'--sign',os.environ.get('LISTEN_SIGN_IDENTITY','-'),app])
+    sign_bundle(app,ent,os.environ.get('LISTEN_SIGN_IDENTITY','-'),os.environ.get('LISTEN_SIGN_KEYCHAIN'))
     run(['codesign','--verify','--deep','--strict',app])
+    # The plist must not advertise an older OS than any bundled native dependency.
+    from macholib.MachO import MachO
+    magic={b'\xcf\xfa\xed\xfe',b'\xce\xfa\xed\xfe',b'\xfe\xed\xfa\xcf',b'\xfe\xed\xfa\xce',b'\xca\xfe\xba\xbe',b'\xca\xfe\xba\xbf'}
+    for binary in app.rglob('*'):
+        if not binary.is_file() or binary.is_symlink():continue
+        with binary.open('rb') as source:header=source.read(4)
+        if header not in magic:continue
+        for image in MachO(str(binary)).headers:
+            for command,body,_ in image.commands:
+                minimum=getattr(body,'minos',0) if command.cmd==0x32 else getattr(body,'version',0) if command.cmd==0x24 else 0
+                if minimum>13<<16:raise RuntimeError('Bundled binary requires a newer macOS than 13: '+str(binary.relative_to(app)))
+    print('Bundled native dependency minimum-OS check passed.')
+
     # Reject stale frozen bytecode before publishing a package.
     from PyInstaller.archive.readers import CArchiveReader
     import types

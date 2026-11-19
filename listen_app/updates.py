@@ -3,18 +3,20 @@ import argparse
 import json
 import threading
 import time
+import platform
 from packaging.version import Version, InvalidVersion
 import requests
 from . import __version__, settings
 
 REPOSITORY = 'Somamill/listen-desktop'
 LOCK = threading.Lock()
+ARCH = 'arm64' if platform.machine() == 'arm64' else 'x86_64'
 
 def check(force=False):
     path = settings.data_dir() / 'update-check.json'
     with LOCK:
         saved = settings.read_json(path, {})
-        if not force and isinstance(saved, dict) and 0 <= time.time()-saved.get('checked_at', 0) < 86400:
+        if not force and isinstance(saved, dict) and saved.get('current') == __version__ and 0 <= time.time()-saved.get('checked_at', 0) < 86400:
             return saved
         response = requests.get('https://api.github.com/repos/'+REPOSITORY+'/releases', params={'per_page': 20},
             headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'listen-desktop/'+__version__}, timeout=8, allow_redirects=False)
@@ -35,7 +37,14 @@ def check(force=False):
                 version = Version(release.get('tag_name', '').removeprefix('v'))
             except (InvalidVersion, TypeError, AttributeError):
                 continue
-            if not version.is_prerelease:
+            expected = {'listen-'+str(version)+'-macOS-'+ARCH+ext for ext in ('.zip','.dmg')}
+            assets = release.get('assets', [])
+            compatible = isinstance(assets,list) and any(isinstance(asset,dict)
+                and asset.get('name') in expected and type(asset.get('size')) is int and 0<asset['size']<4_000_000_000
+                and isinstance(asset.get('browser_download_url'),str)
+                and asset['browser_download_url'].startswith('https://github.com/'+REPOSITORY+'/releases/download/')
+                for asset in assets)
+            if not version.is_prerelease and compatible:
                 choices.append((version, url))
         result = {'current': __version__, 'available': False, 'checked_at': time.time(), 'message': 'No public release is available yet.'}
         if choices:
@@ -46,10 +55,12 @@ def check(force=False):
         return result
 
 def background():
-    try:
-        check()
-    except (requests.RequestException, ValueError, OSError):
-        pass  # The manual checker reports failures; startup remains available offline.
+    while True:
+        try:
+            check()
+        except (requests.RequestException, ValueError, OSError):
+            pass  # The manual checker reports failures; startup remains available offline.
+        time.sleep(3600)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

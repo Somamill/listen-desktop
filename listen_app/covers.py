@@ -1,6 +1,6 @@
 """Metadata images, fetched through a restricted local cache (never arbitrary URLs)."""
 import hashlib,io,os,time,re
-from urllib.parse import urlparse,urljoin,parse_qs
+from urllib.parse import urlparse,urljoin,parse_qs,urlencode,urlunparse
 import requests
 from flask import Blueprint,request,send_file,abort
 from . import settings
@@ -13,6 +13,8 @@ def safe_url(value):
         p=urlparse(value)
         if p.scheme!='https' or p.port not in (None,443) or p.username or p.password:return ''
         if p.hostname in HOSTS:
+            if p.hostname=='covers.openlibrary.org':
+                query=parse_qs(p.query);query['default']=['false'];value=urlunparse(p._replace(query=urlencode(query,doseq=True)))
             if p.hostname in {'i.gr-assets.com','s.gr-assets.com','images.gr-assets.com'}:
                 value=re.sub(r'_S[XY]\d+_', '_SY600_', value)
                 value=re.sub(r'(/books/\d+)s(/)',r'\1l\2',value)

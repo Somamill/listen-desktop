@@ -21,7 +21,7 @@ def test_update_rejects_native_repo_and_prereleases():
     response.json.return_value=[
       {'tag_name':'v90','html_url':'https://github.com/Somamill/sovo/releases/tag/v90'},
       {'tag_name':'v80b1','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v80b1','prerelease':True},
-      {'tag_name':'v1.0.0','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v1.0.0'}]
+      {'tag_name':'v1.0.0','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v1.0.0','assets':[{'name':'listen-1.0.0-macOS-'+updates.ARCH+'.zip','size':1,'browser_download_url':'https://github.com/Somamill/listen-desktop/releases/download/v1.0.0/file.zip'}]}]
     with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,LISTEN_DATA_DIR=folder),patch('requests.get',return_value=response) as fetch:
       result=updates.check(force=True)
       assert result['latest']=='1.0.0'
@@ -71,3 +71,33 @@ def test_rejected_client_settings_are_localized_without_changing_credentials():
       assert r.status_code==400
       assert r.json['error']=='Wähle ein unterstütztes Design.'
       assert settings.load()['theme']=='system'
+
+
+def test_update_ignores_release_without_compatible_download():
+    response=Mock(content=b'[]');response.json.return_value=[{'tag_name':'v99','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v99'}]
+    with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,LISTEN_DATA_DIR=folder),patch('requests.get',return_value=response):
+      assert updates.check(force=True)['available'] is False
+
+
+def test_distribution_signing_uses_explicit_keychain_and_nested_runtime():
+    import importlib.util
+    path=Path(__file__).resolve().parents[1]/'scripts/build_macos.py'
+    spec=importlib.util.spec_from_file_location('listen_build_macos',path);build=importlib.util.module_from_spec(spec);spec.loader.exec_module(build)
+    with tempfile.TemporaryDirectory() as folder:
+      app=Path(folder)/'listen.app';(app/'Contents').mkdir(parents=True)
+      binary=app/'Contents/helper';binary.write_bytes(b'\xcf\xfa\xed\xfe'+b'test')
+      (app/'Contents/config').write_text('not executable')
+      with patch.object(build,'run') as run:
+        build.sign_bundle(app,Path(folder)/'entitlements.plist','approved-identity','/private/isolated.keychain-db')
+      assert run.call_count==2
+      for row in run.call_args_list:
+        args=row.args[0];assert '--timestamp' in args and '--options' in args and 'runtime' in args
+        assert args[args.index('--keychain')+1]=='/private/isolated.keychain-db'
+      assert run.call_args_list[-1].args[0][-1]==app
+
+
+def test_open_library_missing_cover_is_not_a_blank_placeholder():
+    from listen_app.covers import safe_url
+    from urllib.parse import urlparse,parse_qs
+    for url in ['https://covers.openlibrary.org/b/id/123-L.jpg','https://covers.openlibrary.org/b/id/123-L.jpg?default=true']:
+      assert parse_qs(urlparse(safe_url(url)).query)['default']==['false']

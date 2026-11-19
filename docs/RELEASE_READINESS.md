@@ -3,7 +3,7 @@
 Source: reconciled native/desktop parent 4273af7975c59c69fe2d15ee69000ccf3af48f91. Current source split has independent build inputs and updater destination. Actions disabled before first push.
 
 ## Verified
-- 44 Python tests pass: the inherited 38 app regressions and 6 independent split/update/locale tests.
+- 47 Python tests pass: the inherited 38 app regressions and 9 independent split/update/locale/signing/cover tests.
 - All five real Flask/Jinja pages render; 20 inline scripts and standalone JS pass Node syntax checks.
 - Self-contained native arm64 ZIP/DMG build succeeds and verifies local signatures, fresh startup, neutral defaults, loopback auth and main pages. This is ad-hoc local QA, not Developer ID or notarization.
 - Actual headless app UI inspected at 1440×1000; Arabic RTL at 1000×900 negotiates its locale and reverses layout without horizontal overflow. UI screenshots are web-surface evidence, not evidence of native window behavior or live torrent/provider authentication.
@@ -16,3 +16,13 @@ Source: reconciled native/desktop parent 4273af7975c59c69fe2d15ee69000ccf3af48f9
 
 ## Design review
 Impeccable/Hallmark were loaded. Raw Jinja template scans report false positives for inherited CSS, templating strings and missing inline shared styles; these are not a clean pass. Actual rendered captures were inspected and small functional text was increased. Warm paper/amber and existing serif headings are deliberate product identity; the standalone app does not inherit dot. branding. Remaining audit findings and unreviewed linguistic quality are not silently waived.
+
+## Independent fresh-clone evidence
+
+Public source f7e0eddd076c2ad2b7c237c6c4886e209314ac79 was cloned from Somamill/listen-desktop into a fresh directory and installed in its own Python3.13 environment.44 tests and all five rendered-page/20-inline-script checks passed there. The self-contained Mac arm64 ZIP/DMG built with bundled10-language strings, stable bundle ID and native macOS13 target. All10 Localizable.strings files passed plist validation. Subsequent accessibility/update/signing changes have47 local tests; exact-source rebuild follows before publication.
+
+The fresh-clone native app launched with an isolated LISTEN_DATA_DIR. Cmd+, opened German settings and translated native Edit menu; genuine Mac capture retained privately. The DMG mounted read-only and its app replaced a disposable copy of legacy0.4.2 as0.5.0, with stable identity and strict signature validation. The original /Applications/listen.app, its library and qBittorrent routing were untouched. LaunchServices resolves the installed magnet handler to qBittorrent.app, but the known local qBittorrent API port18080 was not reachable; no live torrent/client login is claimed. Manual official-feed check returned current0.5.0, available=false (no public release).
+
+All12 observed Mach-O minimum versions in the first fresh bundle were macOS13 or older. Build automation now rejects any bundled dependency newer than the advertised minimum. Developer ID support signs nested Mach-O/frameworks and the outer bundle inside-out, with hardened runtime, secure timestamps and optional explicit isolated keychain. Credentials are never requested or embedded. Public signing/notarization is still pending the migration owner’s authorized credential check.
+
+Visual review: Hallmark rendered floor reached0 FAIL; remaining source-spacing reflexes and deliberate warm-paper palette are documented in DESIGN.md. HTML/native checks are distinct. Qualified linguistic/accessibility certification and every remote provider/client combination remain unverified.
