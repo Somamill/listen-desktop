@@ -2,7 +2,7 @@
 import json
 from functools import lru_cache
 from pathlib import Path
-from flask import request,g
+from flask import request,g,has_request_context
 from . import settings
 LANGUAGES = {'en':'English','zh':'中文','es':'Español','ar':'العربية','id':'Bahasa Indonesia','pt':'Português','fr':'Français','ja':'日本語','ru':'Русский','de':'Deutsch'}
 @lru_cache(maxsize=12)
@@ -19,4 +19,5 @@ def locale():
     g.ui_locale='en'
     return 'en'
 def translate(text):
+    if not has_request_context():return text
     return catalog(locale()).get(text) or text

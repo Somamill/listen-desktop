@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "Разрешите listen. доступ к Safari в Системных настройках → Конфиденциальность и безопасность → Автоматизация и повторите.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "Откройте книгу Goodreads или My Books в Safari и повторите.",
   "Opened your default torrent app. Confirm the download there.": "Открыт торрент-клиент по умолчанию. Подтвердите загрузку в нём.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Установите клиент с поддержкой magnet или выберите прямое подключение в настройках."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Установите клиент с поддержкой magnet или выберите прямое подключение в настройках.",
+  "Checking…": "Проверка…",
+  "Complete": "Завершено",
+  "Moving…": "Перемещение…",
+  " Last refreshed ": " Обновлено: ",
+  " books": " книг",
+  " peers": " пиров",
+  " seeds": " сидов",
+  "qBittorrent opened. Sending your download…": "qBittorrent открыт. Отправка загрузки…",
+  "↗ Open client": "Открыть клиент",
+  "● Ready for your next listen": "Готово к следующей книге",
+  "✓ In library": "В библиотеке",
+  "✓ Sent to client": "Отправлено в клиент",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "Проверяет официальный выпуск раз в день, пока listen. открыт. Можно проверить сейчас. Обновления не устанавливаются автоматически.",
+  "Possible match · Ready to listen": "Возможное совпадение · Готово к прослушиванию",
+  "Possible download match · {percent}%": "Возможное совпадение загрузки · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "Полка Goodreads из Safari импортирована. Откройте другую страницу для добавления.",
+  "Sign in to Goodreads to refresh your shelves.": "Войдите в Goodreads для обновления полок."
 }

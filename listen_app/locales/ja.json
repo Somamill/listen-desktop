@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "「システム設定 → プライバシーとセキュリティ → オートメーション」でlisten.のSafariアクセスを許可して再試行してください。",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "SafariでGoodreadsの本かMy Booksを開いて再試行してください。",
   "Opened your default torrent app. Confirm the download there.": "デフォルトのTorrentアプリを開きました。そちらでダウンロードを確認してください。",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Magnet対応のクライアントをインストールするか、設定で直接接続を選んでください。"
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Magnet対応のクライアントをインストールするか、設定で直接接続を選んでください。",
+  "Checking…": "確認中…",
+  "Complete": "完了",
+  "Moving…": "移動中…",
+  " Last refreshed ": " 最終更新：",
+  " books": " 冊",
+  " peers": " ピア",
+  " seeds": " シード",
+  "qBittorrent opened. Sending your download…": "qBittorrentを開きました。ダウンロードを送信中…",
+  "↗ Open client": "クライアントを開く",
+  "● Ready for your next listen": "次の一冊を聴く準備ができました",
+  "✓ In library": "ライブラリに移動済み",
+  "✓ Sent to client": "クライアントに送信済み",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "listen.の起動中に1日1回公式リリースを確認します。今すぐ確認することもできます。更新を自動インストールすることはありません。",
+  "Possible match · Ready to listen": "一致の可能性あり・再生可能",
+  "Possible download match · {percent}%": "一致する可能性のあるダウンロード · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "SafariのGoodreadsの本棚を読み込みました。別の本棚を開くと追加できます。",
+  "Sign in to Goodreads to refresh your shelves.": "本棚を更新するにはGoodreadsにログインしてください。"
 }

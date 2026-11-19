@@ -57,6 +57,8 @@ def test_requested_catalogs_are_complete_and_keep_placeholders():
       rows=json.loads((root/(code+'.json')).read_text())
       assert set(rows)==set(source)
       assert all(isinstance(value,str) and value.strip() for value in rows.values())
+      import re
+      for key,value in rows.items():assert re.findall(r'\{[^{}]+\}',key)==re.findall(r'\{[^{}]+\}',value)
       assert rows['qBittorrent']=='qBittorrent'
       assert rows['http://127.0.0.1:8080']=='http://127.0.0.1:8080'
 

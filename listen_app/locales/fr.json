@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "Autorisez listen. à accéder à Safari dans Réglages Système → Confidentialité et sécurité → Automatisation, puis réessayez.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "Ouvrez un livre Goodreads ou My Books dans Safari puis réessayez.",
   "Opened your default torrent app. Confirm the download there.": "L’app torrent par défaut est ouverte. Confirmez-y le téléchargement.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Installez un client compatible magnet ou choisissez une connexion directe dans Réglages."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Installez un client compatible magnet ou choisissez une connexion directe dans Réglages.",
+  "Checking…": "Vérification…",
+  "Complete": "Terminé",
+  "Moving…": "Déplacement…",
+  " Last refreshed ": " Dernière actualisation : ",
+  " books": " livres",
+  " peers": " pairs",
+  " seeds": " sources",
+  "qBittorrent opened. Sending your download…": "qBittorrent est ouvert. Envoi du téléchargement…",
+  "↗ Open client": "Ouvrir le client",
+  "● Ready for your next listen": "Prêt pour votre prochaine écoute",
+  "✓ In library": "Dans la bibliothèque",
+  "✓ Sent to client": "Envoyé au client",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "Vérifie la version officielle une fois par jour quand listen. est ouvert. Vous pouvez aussi vérifier maintenant. Aucune installation automatique.",
+  "Possible match · Ready to listen": "Correspondance possible · Prêt à écouter",
+  "Possible download match · {percent}%": "Téléchargement correspondant possible · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "L’étagère Goodreads ouverte dans Safari est importée. Ouvrez une autre page pour l’ajouter.",
+  "Sign in to Goodreads to refresh your shelves.": "Connectez-vous à Goodreads pour actualiser vos étagères."
 }

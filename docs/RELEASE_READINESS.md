@@ -11,7 +11,7 @@ Source: reconciled native/desktop parent 4273af7975c59c69fe2d15ee69000ccf3af48f9
 
 ## Blocking public production distribution
 - No verified Developer ID Application certificate/notary profile. Existing App Store signing cannot substitute for direct distribution. No ad-hoc package is advertised as notarized.
-- Ten catalogs have matching 409-key coverage, including all original217 static keys, long guidance, dynamic statuses/errors and native menus. Proper product names, URLs and shortcuts remain unchanged. Qualified linguistic review is not claimed; provider websites and book metadata are separate from interface translation.
+- Ten catalogs have matching 426-key coverage, including all original217 static keys, long guidance, dynamic statuses/errors and native menus. Proper product names, URLs and shortcuts remain unchanged. Qualified linguistic review is not claimed; provider websites and book metadata are separate from interface translation.
 - Fresh-clone native build, exact final rendered evidence and installer/update checks are recorded when complete below. Live Goodreads authentication and remote client combinations require actual accounts/devices; fixture success is not a live connection guarantee.
 
 ## Design review

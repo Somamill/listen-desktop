@@ -73,3 +73,5 @@ html,body{overflow-x:clip}html[dir="rtl"] .sidebar{left:auto;right:0}html[dir="r
 .eyebrow,.section-label{display:none}.topbar{letter-spacing:normal;text-transform:none}.wordmark{font-family:var(--listen-font-ui);font-weight:750}.quiet-card{display:none} [dir="rtl"] .sidebar{right:0;left:auto} [dir="rtl"] main{margin-inline-start:254px;margin-inline-end:0} [dir="rtl"] .settings-card select{max-inline-size:100%}@media(max-width:700px){[dir="rtl"] main{margin-inline:0}}
 
 .wordmark{direction:ltr;unicode-bidi:isolate}input[type="url"],input[type="password"],#client_url,#downloads_folder,#completed_folder{direction:ltr;unicode-bidi:isolate}small,.brand small,.connection-control,.lock-control,.dialog-note,.quiet-card p,footer{font-size:13px!important}.settings-card button,.settings-card label,.settings-card input,.settings-card select{font-size:14px}
+
+.settings-row select{min-inline-size:210px;max-inline-size:55%}@media(max-width:700px){.settings-row select{min-inline-size:0;max-inline-size:100%}}

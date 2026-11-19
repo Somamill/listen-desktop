@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "Erlaube listen. den Safari-Zugriff unter Systemeinstellungen → Datenschutz & Sicherheit → Automation und versuche es erneut.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "Öffne ein Goodreads-Buch oder My Books in Safari und versuche es erneut.",
   "Opened your default torrent app. Confirm the download there.": "Deine Standard-Torrent-App wurde geöffnet. Bestätige den Download dort.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Installiere einen Client für Magnet-Links oder wähle eine direkte Client-Verbindung in den Einstellungen."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Installiere einen Client für Magnet-Links oder wähle eine direkte Client-Verbindung in den Einstellungen.",
+  "Checking…": "Wird geprüft…",
+  "Complete": "Abgeschlossen",
+  "Moving…": "Wird verschoben…",
+  " Last refreshed ": " Zuletzt aktualisiert: ",
+  " books": " Bücher",
+  " peers": " Peers",
+  " seeds": " Seeds",
+  "qBittorrent opened. Sending your download…": "qBittorrent geöffnet. Dein Download wird gesendet…",
+  "↗ Open client": "Client öffnen",
+  "● Ready for your next listen": "Bereit für dein nächstes Hörbuch",
+  "✓ In library": "In der Bibliothek",
+  "✓ Sent to client": "An den Client gesendet",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "Prüft bei laufendem listen. einmal täglich die offizielle Desktop-Version. Du kannst auch jetzt prüfen. Updates werden nie automatisch installiert.",
+  "Possible match · Ready to listen": "Möglicher Treffer · Bereit zum Hören",
+  "Possible download match · {percent}%": "Möglicher Downloadtreffer · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "Das in Safari geöffnete Goodreads-Regal wurde importiert. Öffne eine andere Regalseite, um sie hinzuzufügen.",
+  "Sign in to Goodreads to refresh your shelves.": "Melde dich bei Goodreads an, um deine Regale zu aktualisieren."
 }

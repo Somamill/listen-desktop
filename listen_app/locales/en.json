@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "Open a Goodreads book or My Books shelf in Safari, then try again.",
   "Opened your default torrent app. Confirm the download there.": "Opened your default torrent app. Confirm the download there.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Install a torrent client that handles magnet links, or choose a direct client connection in Settings."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.",
+  "Checking…": "Checking…",
+  "Complete": "Complete",
+  "Moving…": "Moving…",
+  " Last refreshed ": " Last refreshed ",
+  " books": " books",
+  " peers": " peers",
+  " seeds": " seeds",
+  "qBittorrent opened. Sending your download…": "qBittorrent opened. Sending your download…",
+  "↗ Open client": "↗ Open client",
+  "● Ready for your next listen": "● Ready for your next listen",
+  "✓ In library": "✓ In library",
+  "✓ Sent to client": "✓ Sent to client",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.",
+  "Possible match · Ready to listen": "Possible match · Ready to listen",
+  "Possible download match · {percent}%": "Possible download match · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.",
+  "Sign in to Goodreads to refresh your shelves.": "Sign in to Goodreads to refresh your shelves."
 }

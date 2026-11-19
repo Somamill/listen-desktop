@@ -57,6 +57,7 @@ def library_tracking(books):
             name_tokens=set(re.findall(r'[a-z0-9]+',t.get('name','').casefold()))
             if len(title_tokens)>=2 and set(title_tokens).issubset(name_tokens):
                 pct=round(t.get('progress',0)*100)
-                book['audio_status']=('Possible match · Ready to listen' if pct>=100 else f'Possible download match · {pct}%')
+                from .i18n import translate
+                book['audio_status']=(translate('Possible match · Ready to listen') if pct>=100 else translate('Possible download match · {percent}%').format(percent=pct))
                 break
     return books

@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "Permita que listen. acesse Safari em Ajustes do Sistema → Privacidade e Segurança → Automação e tente novamente.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "Abra um livro Goodreads ou My Books no Safari e tente novamente.",
   "Opened your default torrent app. Confirm the download there.": "O app torrent padrão foi aberto. Confirme o download nele.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Instale um cliente compatível com magnet ou escolha conexão direta em Ajustes."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Instale um cliente compatível com magnet ou escolha conexão direta em Ajustes.",
+  "Checking…": "Verificando…",
+  "Complete": "Concluído",
+  "Moving…": "Movendo…",
+  " Last refreshed ": " Última atualização: ",
+  " books": " livros",
+  " peers": " pares",
+  " seeds": " sementes",
+  "qBittorrent opened. Sending your download…": "qBittorrent aberto. Enviando download…",
+  "↗ Open client": "Abrir cliente",
+  "● Ready for your next listen": "Pronto para sua próxima escuta",
+  "✓ In library": "Na biblioteca",
+  "✓ Sent to client": "Enviado ao cliente",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "Verifica a versão oficial uma vez por dia com listen. aberto. Você também pode verificar agora. Atualizações nunca são instaladas automaticamente.",
+  "Possible match · Ready to listen": "Possível correspondência · Pronto para ouvir",
+  "Possible download match · {percent}%": "Possível download correspondente · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "A estante Goodreads no Safari foi importada. Abra outra página de estante para adicioná-la.",
+  "Sign in to Goodreads to refresh your shelves.": "Entre no Goodreads para atualizar suas estantes."
 }

@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "اسمح لـlisten. بالوصول إلى Safari في إعدادات النظام ← الخصوصية والأمان ← الأتمتة، ثم حاول مجددًا.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "افتح كتاب Goodreads أو رف My Books في Safari ثم حاول مجددًا.",
   "Opened your default torrent app. Confirm the download there.": "فُتح تطبيق التورنت الافتراضي. أكّد التنزيل فيه.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "ثبّت عميل تورنت يدعم magnet أو اختر اتصالًا مباشرًا في الإعدادات."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "ثبّت عميل تورنت يدعم magnet أو اختر اتصالًا مباشرًا في الإعدادات.",
+  "Checking…": "جارٍ الفحص…",
+  "Complete": "مكتمل",
+  "Moving…": "جارٍ النقل…",
+  " Last refreshed ": " آخر تحديث: ",
+  " books": " كتب",
+  " peers": " أقران",
+  " seeds": " بذور",
+  "qBittorrent opened. Sending your download…": "فُتح qBittorrent. جارٍ إرسال التنزيل…",
+  "↗ Open client": "فتح العميل",
+  "● Ready for your next listen": "جاهز لاستماعك التالي",
+  "✓ In library": "في المكتبة",
+  "✓ Sent to client": "أُرسل إلى العميل",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "يفحص الإصدار الرسمي مرة يوميًا أثناء تشغيل listen. يمكنك الفحص الآن أيضًا. لا تُثبّت التحديثات تلقائيًا.",
+  "Possible match · Ready to listen": "مطابقة محتملة · جاهز للاستماع",
+  "Possible download match · {percent}%": "تنزيل مطابق محتمل · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "استُورد رف Goodreads المفتوح في Safari. افتح صفحة رف أخرى لإضافتها.",
+  "Sign in to Goodreads to refresh your shelves.": "سجّل الدخول إلى Goodreads لتحديث رفوفك."
 }

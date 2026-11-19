@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "请在“系统设置 → 隐私与安全性 → 自动化”中允许 listen. 访问 Safari 后重试。",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "请在 Safari 打开 Goodreads 图书或 My Books 书架后重试。",
   "Opened your default torrent app. Confirm the download there.": "已打开默认种子应用，请在那里确认下载。",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "请安装支持磁力链接的种子客户端，或在设置中选择直接客户端连接。"
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "请安装支持磁力链接的种子客户端，或在设置中选择直接客户端连接。",
+  "Checking…": "正在检查…",
+  "Complete": "已完成",
+  "Moving…": "正在移动…",
+  " Last refreshed ": " 上次刷新：",
+  " books": " 本图书",
+  " peers": " 个节点",
+  " seeds": " 个种子",
+  "qBittorrent opened. Sending your download…": "qBittorrent 已打开，正在发送下载…",
+  "↗ Open client": "打开客户端",
+  "● Ready for your next listen": "准备好聆听下一本",
+  "✓ In library": "已移至书库",
+  "✓ Sent to client": "已发送至客户端",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "listen. 运行时每天检查一次官方桌面版本，也可以立即检查。绝不自动安装更新。",
+  "Possible match · Ready to listen": "可能匹配 · 可收听",
+  "Possible download match · {percent}%": "可能匹配下载 · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "已导入 Safari 中打开的 Goodreads 书架。打开另一个书架页面即可添加。",
+  "Sign in to Goodreads to refresh your shelves.": "请登录 Goodreads 以刷新书架。"
 }

@@ -407,5 +407,22 @@
   "Allow listen. to access Safari in System Settings → Privacy & Security → Automation, then try again.": "Izinkan listen. mengakses Safari di Pengaturan Sistem → Privasi & Keamanan → Otomatisasi, lalu coba lagi.",
   "Open a Goodreads book or My Books shelf in Safari, then try again.": "Buka buku Goodreads atau My Books di Safari lalu coba lagi.",
   "Opened your default torrent app. Confirm the download there.": "Aplikasi torrent bawaan dibuka. Konfirmasi unduhan di sana.",
-  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Pasang klien torrent yang mendukung magnet, atau pilih koneksi langsung di Pengaturan."
+  "Install a torrent client that handles magnet links, or choose a direct client connection in Settings.": "Pasang klien torrent yang mendukung magnet, atau pilih koneksi langsung di Pengaturan.",
+  "Checking…": "Memeriksa…",
+  "Complete": "Selesai",
+  "Moving…": "Memindahkan…",
+  " Last refreshed ": " Terakhir disegarkan: ",
+  " books": " buku",
+  " peers": " peer",
+  " seeds": " seed",
+  "qBittorrent opened. Sending your download…": "qBittorrent dibuka. Mengirim unduhan…",
+  "↗ Open client": "Buka klien",
+  "● Ready for your next listen": "Siap untuk mendengarkan berikutnya",
+  "✓ In library": "Di perpustakaan",
+  "✓ Sent to client": "Dikirim ke klien",
+  "Checks the official desktop release once a day while listen. runs. You can also check now. Updates never install automatically.": "Memeriksa rilis resmi sekali sehari saat listen. berjalan. Anda juga dapat memeriksa sekarang. Pembaruan tidak dipasang otomatis.",
+  "Possible match · Ready to listen": "Kemungkinan cocok · Siap didengar",
+  "Possible download match · {percent}%": "Kemungkinan unduhan cocok · {percent}%",
+  "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "Rak Goodreads di Safari diimpor. Buka halaman rak lain untuk menambahkannya.",
+  "Sign in to Goodreads to refresh your shelves.": "Masuk Goodreads untuk menyegarkan rak."
 }
