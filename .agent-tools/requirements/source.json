@@ -1,14 +1,17 @@
 {
   "schemaVersion": 1,
-  "repository": "Somamill/dot-brand-kit",
-  "commit": "0852c47d91c7d695f30b11f484330de21319d110",
-  "policyVersion": 2,
-  "files": {
-    "AGENT_DEVELOPMENT.md": "ab7050d389ca36b4604b4f1fd906209fa4bb5086053fc70bf626e64a170b9fb0",
-    "TOOL_CATALOG.md": "4b3b3317635b93957b7aff5da056a37af19b0aed743ee52db3dcd22fd42095ca",
-    "LOCALIZATION.md": "06a4968c2eb5cc3765c655fe38c54f4d4602fb3b1ed849048f59ee1b351f9ea4",
-    "APP_STORE_PLAYBOOK.md": "3a39af2eda9a75707294dabf2e112690d43492ba31ed14e2aa24a6e6e0b10d2b",
-    "TREND_RESEARCH.md": "f9c8cdeed421e42951b112256ac8a11006be525af0ddf398c4f4faf19b6ec8cf",
-    "LANGUAGES.json": "18aa5b53e1d48f860077db279378d71146a1d6dd9944a4e9d1ecfeb9ab9d7aa3"
-  }
+  "repository": "Somamill/mac-development-tools",
+  "commit": "b0d92d21f6e2b19ab8480a63b5027d012719b0a1",
+  "relationship": "reviewed technical references only; not product membership or installed service",
+  "upstreamFiles": {
+    "README.md": "05773cdb9ed5eb0351eda45c4f83d9df9e46c423d18e5c7a0f133d4eeda776ad",
+    "runner.py": "0149aaaa31cd22065ebeccc88efe93e00864c4df5ccde7486fb42bc57ef85348",
+    "install-agent.py": "472383ea7fce5f3f128dcb465b5201051aaa16b3a434b0763483a933671985d7",
+    "artifact-manifest.py": "8f39884aab0f7d95cc87a3bfa33a44d9c4b77612be392937a7f4a48597f99e3e"
+  },
+  "localFiles": {
+    "AGENT_DEVELOPMENT.md": "4a67406a91a81e175e5415184878ae465f742690716453afcb792a3f0b0c2817",
+    "TOOL_CATALOG.md": "75cd905f590c9a3c6e120febab65625ef440695f38767bf41329ef15802fc430"
+  },
+  "access": "Private shared technical source; optional, not a public build dependency"
 }
