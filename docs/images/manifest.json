@@ -1,0 +1,20 @@
+[
+  {
+    "file": "native-arabic.png",
+    "sha256": "ae309fb61cfcdb33c340c1c75308f750eea5bfb7df6bb29432fef710954ef3a8",
+    "source_commit": "0c2fc6b",
+    "app_version": "0.5.0",
+    "platform": "native Mac AppKit/WebKit",
+    "capture": "CUA real app window",
+    "rights": "original app UI, original icon, isolated QA data; no third-party covers or personal library"
+  },
+  {
+    "file": "native-settings.png",
+    "sha256": "2bba32ddbb72599972552dedd49d4c0a20f2ee2f873eb5ba7b66aa0424a94537",
+    "source_commit": "0c2fc6b",
+    "app_version": "0.5.0",
+    "platform": "native Mac AppKit/WebKit",
+    "capture": "CUA real app window",
+    "rights": "original app UI, original icon, isolated QA data; no third-party covers or personal library"
+  }
+]

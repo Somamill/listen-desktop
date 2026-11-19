@@ -4,6 +4,10 @@ Audiobook discovery, torrent-client handoff and a local library for macOS.
 
 **Independent from [sovo.](https://github.com/Somamill/sovo), the native Apple audiobook player.** listen. does not install, replace or use sovo.’s library.
 
+![The independent listen. Mac app settings](docs/images/native-settings.png)
+
+*Actual native Mac window, version0.5.0. English and Arabic interfaces share the same controls.*
+
 ## Install
 
 A Developer ID signed/notarized installer is not available yet. Do not treat the local QA builds as production-signed downloads. [Official releases](https://github.com/Somamill/listen-desktop/releases) are the only updater destination.
@@ -34,6 +38,8 @@ Only import or download content you are authorized to use. Catalog requests and 
 ## Current readiness
 
 The independent source and self-contained arm64 ZIP/DMG build work locally. Direct public distribution is blocked on legitimate Developer ID/notarization credentials. Ten interface catalogs include static screens, long-form guidance, dynamic status/errors and native menus. Interface language follows the supported system preferences or your selection, separately from audiobook filters. Arabic RTL and long-text layouts are checked below; provider website language remains controlled by that provider. See [release readiness](docs/RELEASE_READINESS.md).
+
+[Arabic RTL interface](docs/images/native-arabic.png) · [Extraction and one-time migration](docs/EXTRACTION.md)
 
 ## Develop and verify
 
