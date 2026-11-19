@@ -67,6 +67,8 @@ GitHub Actions remain disabled by owner instruction. No upload, TestFlight distr
 
 # App Store release candidate
 
+Verified on 18 November 2026: iOS 1.0.0 (6) remains published; Mac 1.0.0 (7) is now **IN_REVIEW**. iOS 1.0.1 (8) is **PREPARE_FOR_SUBMISSION**, a draft rather than a submitted update. The dated record below preserves the earlier release evidence.
+
 Updated 16 November 2026. Store listing: **sovo.**; installed app and in-app name: **listen.**
 
 | Edition | Version/build | Apple status |

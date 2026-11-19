@@ -21,3 +21,6 @@ listening-progress.json
 # Local design-audit captures
 .hallmark/shots/
 .hallmark/before/
+
+# Local agent requirement sync artifacts
+.agent-tools/.requirements-*
