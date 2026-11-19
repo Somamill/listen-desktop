@@ -18,16 +18,17 @@ build = ["pyinstaller>=6.15,<7", "pip-audit>=2.9,<3"]
 
 [project.scripts]
 listen-server = "listen_app.server:main"
+listen-update = "listen_app.updates:main"
 
 [project.urls]
-Homepage = "https://github.com/Somamill/listen"
-Issues = "https://github.com/Somamill/listen/issues"
+Homepage = "https://github.com/Somamill/listen-desktop"
+Issues = "https://github.com/Somamill/listen-desktop/issues"
 
 [tool.setuptools.packages.find]
 include = ["listen_app*"]
 
 [tool.setuptools.package-data]
-listen_app = ["templates/*.html", "static/css/*.css", "static/images/*.png", "static/js/*.js"]
+listen_app = ["templates/*.html", "locales/*.json", "static/css/*.css", "static/images/*.png", "static/js/*.js"]
 
 [tool.setuptools.dynamic]
 version = {attr = "listen_app.__version__"}

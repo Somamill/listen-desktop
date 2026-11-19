@@ -28,6 +28,10 @@ The browser bookmarklet sends a Goodreads book URL, title, and author to the loc
 
 ## Trust & releases
 
-The public beta is ad-hoc signed, not Developer ID notarized. Checksums identify release files but are not a malware assessment. Source and automated build workflows are public. Use only releases from this project’s repository and review code before building.
+The public beta is ad-hoc signed, not Developer ID notarized. Checksums identify release files but are not a malware assessment. Source and local build scripts are public; GitHub Actions remain disabled. Use only releases from this project’s repository and review code before building.
 
 Please report security-sensitive issues privately; see [SECURITY.md](../SECURITY.md).
+
+## Update availability
+
+The running desktop app checks the public Somamill/listen-desktop GitHub releases once per day and when you request it. GitHub receives a normal HTTPS request, your network address and the app User-Agent/version. No library, credentials, audio or browsing session is sent. Results are cached locally for one day. Checks never download or execute an installer and never use the native sovo. release feed.

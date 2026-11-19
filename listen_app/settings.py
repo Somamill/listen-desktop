@@ -4,7 +4,7 @@ from pathlib import Path,PureWindowsPath
 from urllib.parse import urlparse
 
 DEFAULTS={
- 'theme':'system','languages':[], 'categories':[], 'excluded_categories':[], 'include_unknown_language':True,
+ 'ui_language':'system','theme':'system','languages':[], 'categories':[], 'excluded_categories':[], 'include_unknown_language':True,
  'catalog_host':'audiobookbay.lu','search_pages':2,
  'client':{'type':'magnet','url':'http://127.0.0.1:8080','username':'','category':'listen'},
  'downloads_folder':'','completed_folder':'','stage_incomplete':True,
@@ -42,6 +42,7 @@ def validate(payload):
     cfg=load()
     for k in DEFAULTS:
         if k in payload:cfg[k]=payload[k]
+    if cfg.get('ui_language') not in ('system','en','zh','es','ar','id','pt','fr','ja','ru','de'):raise ValueError('Choose a supported interface language.')
     if cfg['theme'] not in ('light','dark','system'):raise ValueError('Choose a supported theme.')
     if cfg['browser'] not in ('default','safari','chrome','firefox','edge','brave'):raise ValueError('Choose a supported browser.')
     for key in ('languages','categories','excluded_categories'):

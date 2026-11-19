@@ -1,0 +1,75 @@
+/* Hallmark · shape: app screen · genre: media library · theme: independent listen. identity */
+/* Refinement: preserve task layouts and content; share semantic roles and control rhythm. */
+:root { --listen-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --listen-oled-background: #000; --listen-oled-surface: #101010; --listen-shell-shadow: 0 8px 24px #00000018; --listen-accent: var(--listen-accent-listen); }
+html[data-listen-theme] { accent-color: var(--listen-accent); scrollbar-color: var(--listen-border) var(--listen-background); }
+body { font-family: var(--listen-font-ui); }
+::selection { background: var(--listen-accent); color: var(--listen-on-accent); }
+input, textarea { caret-color: var(--listen-accent); }
+input::placeholder, textarea::placeholder { color: var(--listen-secondaryText); opacity: 1; }
+:where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--listen-accent); outline-offset: 3px;
+}
+button:disabled { cursor: not-allowed; }
+html[data-listen-theme], html[data-mode=dark] { --ink: var(--listen-text); --muted: var(--listen-secondaryText); --accent: var(--listen-accent); --line: var(--listen-border); background: var(--listen-background); }
+html[data-listen-theme] body { color: var(--listen-text); background: none; }
+html[data-listen-theme] .sidebar { background: color-mix(in srgb, var(--listen-surface) 88%, transparent); border-color: var(--listen-border); }
+html[data-listen-theme] .sidebar nav a { color: var(--listen-secondaryText); font-size: 14px; letter-spacing: normal; }
+html[data-listen-theme] .sidebar nav a.selected { background: color-mix(in srgb, var(--listen-accent) 12%, var(--listen-surface)); color: var(--listen-accent); }
+html[data-listen-theme] .wordmark { color: var(--listen-text); letter-spacing: -.8px; }
+html[data-listen-theme] .wordmark small { color: var(--listen-secondaryText); letter-spacing: normal; font-size: 13px; }
+html[data-listen-theme] .section-label, html[data-listen-theme] .eyebrow { display: none; }
+html[data-listen-theme] .topbar > span { text-transform: none; letter-spacing: normal; color: var(--listen-secondaryText); font-size: 13px; }
+html[data-listen-theme] .primary { background: var(--listen-accent); color: var(--listen-on-accent); border: 0; border-radius: var(--listen-radius-control); min-height: 44px; font-size: 14px; }
+html[data-listen-theme] .secondary, html[data-listen-theme] .settings-input, html[data-listen-theme] .settings-row select { border-radius: var(--listen-radius-control); min-height: 44px; font-size: 14px; }
+html[data-listen-theme] .settings-input { color: var(--listen-text); background: var(--listen-surface); border-color: var(--listen-border); }
+html[data-listen-theme] .settings-card, html[data-listen-theme] .glass, html[data-listen-theme] dialog { border-radius: var(--listen-radius-card); }
+html[data-listen-theme] dialog { background: var(--listen-surface); color: var(--listen-text); border-color: var(--listen-border); }
+html[data-listen-theme] .settings-hint, html[data-listen-theme] .dialog-note, html[data-listen-theme] .connection-control, html[data-listen-theme] .lock-control { color: var(--listen-secondaryText); }
+html[data-listen-theme] .reading-shelf-tabs button.active { background: var(--listen-accent); color: var(--listen-on-accent); }
+html[data-listen-theme] .legacy-suite { margin: 16px 0; }
+html[data-listen-theme] .sidebar .legacy-suite nav a { color: var(--listen-accent); margin: 0; padding: 8px 0; background: none; font-size: 13px; }
+html[data-listen-theme] .sidebar .legacy-suite nav small { color: var(--listen-secondaryText); font-size: 12px; }
+@media (max-width: 700px) { html[data-listen-theme] .sidebar .legacy-suite { margin: 0; } html[data-listen-theme] .sidebar .legacy-suite nav { min-width: 200px; } }
+
+html[data-listen-theme] :where(button, a, summary):active { opacity: var(--listen-pressed-opacity); }
+html[data-listen-theme] :where(h1, h2, h3) { text-wrap: balance; }
+html[data-listen-theme] body input:not([type="checkbox"]):not([type="radio"]), html[data-listen-theme] body select, html[data-listen-theme] body textarea { border: 1px solid var(--listen-secondaryText); }
+
+html[data-listen-theme] body label:focus-within { outline: 2px solid var(--listen-accent); outline-offset: 3px; }
+html[data-listen-theme] body .secondary { white-space: nowrap; width: fit-content; max-width: 100%; flex-shrink: 0; }
+html[data-listen-theme] body .lock-control, html[data-listen-theme] body .sidebar-bottom small, html[data-listen-theme] body footer { font-size: 12px; }
+html[data-listen-theme] body footer a { white-space: nowrap; }
+@media (max-width: 600px) {
+  html[data-listen-theme] main { min-width: 0; width: 100%; padding-left: 16px; padding-right: 16px; }
+  html[data-listen-theme] .settings-row { align-items: flex-start; }
+  html[data-listen-theme] .settings-row > * { min-width: 0; max-width: 100%; }
+  html[data-listen-theme] .settings-row select { width: 100%; }
+  html[data-listen-theme] .settings-card { min-width: 0; padding: 20px 16px; }
+}
+html[data-listen-theme] body .settings-card label, html[data-listen-theme] body .field-label { font-size: 14px; }
+html[data-listen-theme] body .settings-card p, html[data-listen-theme] body .settings-card small, html[data-listen-theme] body .dialog-note, html[data-listen-theme] body .topbar { font-size: 13px; line-height: 1.5; }
+@media (max-width: 700px) {
+  html[data-listen-theme] body { display: block; }
+  html[data-listen-theme] .sidebar { position: static; width: 100%; min-width: 0; height: auto; padding: 16px; display: block; }
+  html[data-listen-theme] .sidebar .brand { margin: 0 0 12px; padding: 0; }
+  html[data-listen-theme] .sidebar > nav { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; }
+  html[data-listen-theme] .sidebar > nav a { white-space: nowrap; min-width: max-content; min-height: 44px; margin: 0; padding: 8px; }
+  html[data-listen-theme] .sidebar .sidebar-bottom { display: none; }
+  html[data-listen-theme] main { margin-left: 0; max-width: 100%; }
+  html[data-listen-theme] .topbar > span { display: none; }
+  html[data-listen-theme] .topbar { justify-content: flex-end; }
+}
+html[data-listen-theme] body .settings-card label span, html[data-listen-theme] body .connection-control span, html[data-listen-theme] body .settings-save > span { font-size: 13px; }
+html[data-listen-theme] body .settings-card button { font-size: 13px; min-height: 40px; }
+
+/* Keep interaction colors in the app palette instead of inheriting legacy hover colors. */
+html[data-listen-theme] body .btn.primary:hover, html[data-listen-theme] body .primary:hover, html[data-listen-theme] body .play:hover { background: var(--listen-accent); color: var(--listen-on-accent); filter: brightness(.96); }
+
+html[data-listen-theme] body :where(button, a, summary):active { transform: translateY(1px); }
+@media (prefers-reduced-motion: reduce) { html[data-listen-theme] body :where(button, a, summary):active { transform: none; } }
+
+html,body{overflow-x:clip}html[dir="rtl"] .sidebar{left:auto;right:0}html[dir="rtl"] main{margin-left:0;margin-right:254px}html[dir="rtl"] .sidebar nav a{flex-direction:row-reverse}html[dir="rtl"] input{text-align:start} @media(max-width:700px){html[dir="rtl"] main{margin:0}}
+
+.eyebrow,.section-label{display:none}.topbar{letter-spacing:normal;text-transform:none}.wordmark{font-family:var(--listen-font-ui);font-weight:750}.quiet-card{display:none} [dir="rtl"] .sidebar{right:0;left:auto} [dir="rtl"] main{margin-inline-start:254px;margin-inline-end:0} [dir="rtl"] .settings-card select{max-inline-size:100%}@media(max-width:700px){[dir="rtl"] main{margin-inline:0}}
+
+.wordmark{direction:ltr;unicode-bidi:isolate}input[type="url"],input[type="password"],#client_url,#downloads_folder,#completed_folder{direction:ltr;unicode-bidi:isolate}small,.brand small,.connection-control,.lock-control,.dialog-note,.quiet-card p,footer{font-size:13px!important}.settings-card button,.settings-card label,.settings-card input,.settings-card select{font-size:14px}

@@ -24,3 +24,5 @@ listening-progress.json
 
 # Local agent requirement sync artifacts
 .agent-tools/.requirements-*
+
+.playwright-cli/

@@ -1,39 +1,18 @@
-# listen. 0.4.1 release-readiness check
+# Independent desktop release readiness — 19 November 2026
 
-Checked 12 November 2026. This is a tested **public beta**, with the distribution and external-service limits below.
+Source: reconciled native/desktop parent 4273af7975c59c69fe2d15ee69000ccf3af48f91. Current source split has independent build inputs and updater destination. Actions disabled before first push.
 
-## Validation
+## Verified
+- 44 Python tests pass: the inherited 38 app regressions and 6 independent split/update/locale tests.
+- All five real Flask/Jinja pages render; 20 inline scripts and standalone JS pass Node syntax checks.
+- Self-contained native arm64 ZIP/DMG build succeeds and verifies local signatures, fresh startup, neutral defaults, loopback auth and main pages. This is ad-hoc local QA, not Developer ID or notarization.
+- Actual headless app UI inspected at 1440×1000; Arabic RTL at 1000×900 negotiates its locale and reverses layout without horizontal overflow. UI screenshots are web-surface evidence, not evidence of native window behavior or live torrent/provider authentication.
+- Stable desktop bundle ID/storage remain unchanged; native Store sources are absent from the current build tree.
 
-| Area | Result and evidence |
-| --- | --- |
-| Application tests | 38 tests covering local authentication, Host/origin checks, malformed requests, metadata filtering, reading shelves, imports, client adapters, startup, add-result handling, and local transfer safeguards, partial-move cleanup prevention, library file preservation, and preferred-edition grouping. |
-| Frontend | Five rendered pages and 20 inline scripts pass Node.js syntax checks, along with the standalone browser script. Swift shell type-checks. |
-| Clean installation | The frozen service is started with a new data directory before packaging. All five pages open, private connection-file permissions and authentication are checked, and neutral preferences are asserted. No existing Mac configuration is required. |
-| Architecture packages | Release CI builds Apple Silicon and Intel independently, runs tests and frontend checks, verifies the actual frozen-service startup contract, signs/verifies the bundle ad hoc, and creates ZIP/DMG files and SHA-256 manifests. Publishing depends on both builds passing. |
-| Catalog | Live mixed-case public-domain title searches return editions. HTTPS redirects are restricted to approved hosts and may not silently discard a search. |
-| Goodreads | A real authenticated session refreshed shelves and survived restarting the app. Reading shelves are separated and unchanged refreshes avoid resetting the current view. No account data is included in this report or the packages. |
-| qBittorrent | Live API checks with macOS qBittorrent 5.2.3. Automatic startup and both legacy and structured add results are covered. Existing torrent privacy preferences are retained. |
-| Library transfer | A stopped, private synthetic torrent with no trackers was added, moved through the real library-transfer API, and removed. listen. automatically removed the synthetic torrent after the move, the local source was absent, and the destination bytes were preserved. The fixture contained no audiobook content; final test cleanup targeted only its unique hash and file. |
-| Dependencies | The checked environment contained 59 audited packages with no known advisories reported. Release dependency versions and CI action revisions are pinned. This is not a guarantee against future advisories or malicious code. |
-| Portable preferences | New installs use default-app magnet handoff, unrestricted languages/categories, a per-user downloads path, and no configured library folder. Existing direct-client and library preferences are preserved. No personal profile, proxy endpoint, credentials, reading history, or personal folder is embedded. |
-| Cleanup | Removed obsolete public-feed and automatic Safari connection experiments, unreachable connection UI, unused endpoints/imports, and stale sign-in messages. Manual browser/CSV imports and opt-in read-only diagnostics remain useful supported features. |
+## Blocking public production distribution
+- No verified Developer ID Application certificate/notary profile. Existing App Store signing cannot substitute for direct distribution. No ad-hoc package is advertised as notarized.
+- Ten catalogs have matching 409-key coverage, including all original217 static keys, long guidance, dynamic statuses/errors and native menus. Proper product names, URLs and shortcuts remain unchanged. Qualified linguistic review is not claimed; provider websites and book metadata are separate from interface translation.
+- Fresh-clone native build, exact final rendered evidence and installer/update checks are recorded when complete below. Live Goodreads authentication and remote client combinations require actual accounts/devices; fixture success is not a live connection guarantee.
 
-The light and dark Qt theme resources were validated; the dark theme was applied and visually checked in qBittorrent. All existing torrents and checked privacy/network preferences survived the restart.
-
-## What another user needs
-
-- macOS 13 or later and the matching arm64 or x86_64 download.
-- A separate torrent app registered to handle magnet links. Basic handoff requires no Web UI setup. listen. does not include a torrent client.
-- Their own Goodreads sign-in if they want Goodreads shelves. Safari is not required for the main connection.
-- For in-app client status, health, and file moves: enable that client’s Web/RPC interface and enter its real address and credentials. These cannot be preconfigured for every computer.
-- For updates: use Settings → About → Check for updates, then replace the app with the matching official release. Per-user data remains outside the bundle.
-
-## Remaining limits
-
-**Apple distribution:** there is no Developer ID distribution certificate configured for this project. Public builds are ad-hoc signed and unnotarized. macOS or organizational policy may block them. Users must follow [Apple’s documented opening guidance](https://support.apple.com/102445); system security protections should remain enabled. This is not App Store or production-notarized distribution.
-
-**External services:** catalog availability and website markup may change. Goodreads sessions may expire or a sign-in provider may restrict embedded sign-in. Shelf refresh runs while listen. is open, is read-only, and is capped at 2,000 books per cycle. No promise of permanent authentication or future service availability is made.
-
-**Client coverage:** qBittorrent has live local checks. Transmission and Deluge have adapter tests, not live certification against every server version. Remote Windows path handling has automated coverage. Magnet handoff delegates locations, progress, and moves to the selected client. Cloud synchronization and remote-file collisions are controlled by their respective provider/client.
-
-**Privacy and files:** listen. is not a VPN or kill switch and does not certify torrent anonymity, file safety, completion, or speed. No setup is guaranteed leak-proof. Folder moves should be reviewed before use; retain backups of valuable media. Read the [privacy model](PRIVACY.md) and [setup guide](GETTING_STARTED.md).
+## Design review
+Impeccable/Hallmark were loaded. Raw Jinja template scans report false positives for inherited CSS, templating strings and missing inline shared styles; these are not a clean pass. Actual rendered captures were inspected and small functional text was increased. Warm paper/amber and existing serif headings are deliberate product identity; the standalone app does not inherit dot. branding. Remaining audit findings and unreviewed linguistic quality are not silently waived.

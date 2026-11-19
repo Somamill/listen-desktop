@@ -30,7 +30,7 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         createMenu()
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 820), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        window.title = "listen."; window.titlebarAppearsTransparent = true; window.delegate = self; window.minSize = NSSize(width: 850, height: 640)
+        window.title = L("listen."); window.titlebarAppearsTransparent = true; window.delegate = self; window.minSize = NSSize(width: 850, height: 640)
         let material = NSVisualEffectView(frame: window.contentView!.bounds)
         material.material = .underWindowBackground; material.blendingMode = .behindWindow; material.autoresizingMask = [.width, .height]
         window.contentView!.addSubview(material)
@@ -40,14 +40,21 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         window.contentView!.addSubview(web); applyAppearance(); window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
         startServer()
     }
+    func L(_ text: String) -> String {
+        if let code = preferences()["ui_language"] as? String, code != "system",
+           let folder = Bundle.main.resourceURL?.appendingPathComponent(code + ".lproj"),
+           let bundle = Bundle(path: folder.path) { return bundle.localizedString(forKey: text, value: text, table: nil) }
+        return Bundle.main.localizedString(forKey: text, value: text, table: nil)
+    }
     func createMenu() {
         let menu = NSMenu(); let item = NSMenuItem(); menu.addItem(item); let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "About listen.", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
-        let lock = NSMenuItem(title: "Lock Window", action: #selector(lockWindow), keyEquivalent: "l"); lock.keyEquivalentModifierMask = [.control, .command]; lock.target = self; appMenu.addItem(lock)
-        let settings = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ","); settings.target = self; appMenu.addItem(settings)
-        appMenu.addItem(.separator()); appMenu.addItem(withTitle: "Quit listen.", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        item.submenu = appMenu; let editItem = NSMenuItem(); let editMenu = NSMenu(title: "Edit")
-        for (title, action, key) in [("Undo", "undo:", "z"), ("Cut", "cut:", "x"), ("Copy", "copy:", "c"), ("Paste", "paste:", "v"), ("Select All", "selectAll:", "a")] { editMenu.addItem(withTitle: title, action: Selector(action), keyEquivalent: key) }
+        appMenu.addItem(withTitle: L("About listen."), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        let update = NSMenuItem(title: L("Check for Updates…"), action: #selector(checkForUpdates), keyEquivalent: ""); update.target = self; appMenu.addItem(update)
+        let lock = NSMenuItem(title: L("Lock Window"), action: #selector(lockWindow), keyEquivalent: "l"); lock.keyEquivalentModifierMask = [.control, .command]; lock.target = self; appMenu.addItem(lock)
+        let settings = NSMenuItem(title: L("Settings…"), action: #selector(openSettings), keyEquivalent: ","); settings.target = self; appMenu.addItem(settings)
+        appMenu.addItem(.separator()); appMenu.addItem(withTitle: L("Quit listen."), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        item.submenu = appMenu; let editItem = NSMenuItem(); let editMenu = NSMenu(title: L("Edit"))
+        for (title, action, key) in [(L("Undo"), "undo:", "z"), (L("Cut"), "cut:", "x"), (L("Copy"), "copy:", "c"), (L("Paste"), "paste:", "v"), (L("Select All"), "selectAll:", "a")] { editMenu.addItem(withTitle: title, action: Selector(action), keyEquivalent: key) }
         editItem.submenu = editMenu; menu.addItem(editItem); NSApp.mainMenu = menu
     }
     func startServer() {
@@ -57,7 +64,7 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         let logs = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].appendingPathComponent("Logs/listen.log")
         if !FileManager.default.fileExists(atPath: logs.path) { FileManager.default.createFile(atPath: logs.path, contents: nil, attributes: [.posixPermissions: 0o600]) }
         if let handle = try? FileHandle(forWritingTo: logs) { handle.seekToEndOfFile(); process.standardOutput = handle; process.standardError = handle }
-        do { try process.run(); server = process; waitForService(100) } catch { showStartupError("The bundled local service could not start. Reinstall listen. or inspect Library/Logs/listen.log.") }
+        do { try process.run(); server = process; waitForService(100) } catch { showStartupError(L("The bundled local service could not start. Reinstall listen. or inspect Library/Logs/listen.log.")) }
     }
     func waitForService(_ remaining: Int) {
         if let data = try? Data(contentsOf: root.appendingPathComponent("connection.json")), let connection = try? JSONSerialization.jsonObject(with: data) as? [String: Any], connection["owner_pid"] as? Int == Int(ProcessInfo.processInfo.processIdentifier), let port = (connection["port"] as? Int) ?? Int(connection["port"] as? String ?? ""), let secret = connection["token"] as? String, let url = URL(string: "http://127.0.0.1:\(port)") {
@@ -68,15 +75,16 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
             return
         }
         if remaining > 0 && server?.isRunning == true { DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { self.waitForService(remaining - 1) } }
-        else { showStartupError("The local service did not become ready. See Library/Logs/listen.log for details.") }
+        else { showStartupError(L("The local service did not become ready. See Library/Logs/listen.log for details.")) }
     }
-    func showStartupError(_ text: String) { let alert = NSAlert(); alert.messageText = "listen. could not start"; alert.informativeText = text; alert.runModal() }
+    func showStartupError(_ text: String) { let alert = NSAlert(); alert.messageText = L("listen. could not start"); alert.informativeText = text; alert.runModal() }
     func request(_ path: String) -> URLRequest? {
         guard let base = serviceURL, let url = URL(string: path, relativeTo: base) else { return nil }
         var r = URLRequest(url: url); r.setValue(token, forHTTPHeaderField: "X-Listen-Token"); return r
     }
     func loadPage(_ path: String) { if let r = request(path) { web.load(r) } }
     @objc func openSettings() { loadPage("/settings") }
+    @objc func checkForUpdates() { loadPage("/settings?check_update=1") }
     func post(_ path: String, payload: [String: Any], completion: @escaping ([String: Any]?, String?) -> Void) {
         guard var r = request(path), let data = try? JSONSerialization.data(withJSONObject: payload), let base = serviceURL else { completion(nil, "The local service is unavailable."); return }
         r.httpMethod = "POST"; r.httpBody = data; r.timeoutInterval = 35; r.setValue("application/json", forHTTPHeaderField: "Content-Type"); r.setValue(base.absoluteString, forHTTPHeaderField: "Origin")
@@ -99,7 +107,7 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         case "goodreads-native-refresh": refreshNativeGoodreads()
         case "goodreads-disconnect":
             grEnabled = false; grTimer?.invalidate(); grWeb?.stopLoading(); grWindow?.orderOut(nil); persistNativeGoodreads(); post("/goodreads/window", payload: ["action": "disconnect"]) { _, _ in self.loadPage("/discover") }
-        case "appearance": applyAppearance()
+        case "appearance": applyAppearance(); createMenu()
         case "lock": lockWindow()
         case "folder": chooseFolder(body["kind"] as? String ?? "")
         case "clipboard": useClipboard()
@@ -133,14 +141,14 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
     }
     func chooseFolder(_ kind: String) {
         guard ["downloads_folder", "completed_folder"].contains(kind) else { return }
-        let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.canCreateDirectories = true; panel.allowsMultipleSelection = false; panel.prompt = "Choose folder"
+        let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = false; panel.canCreateDirectories = true; panel.allowsMultipleSelection = false; panel.prompt = L("Choose folder")
         panel.beginSheetModal(for: window) { response in if response == .OK, let url = panel.url { self.post("/api/folder", payload: ["kind": kind, "path": url.path]) { _, error in if let error = error { self.notify(error) } else { self.loadPage("/settings"); self.notify("Destination folder saved.") } } } }
     }
     func useClipboard() {
         guard let value = NSPasteboard.general.string(forType: .string)?.trimmingCharacters(in: .whitespacesAndNewlines), let url = URL(string: value), url.scheme == "https", ["goodreads.com", "www.goodreads.com"].contains(url.host ?? ""), url.path.hasPrefix("/book/show/") else { notify("Copy a Goodreads book URL, then try again."); return }
         post("/goodreads/link", payload: ["url": url.absoluteString]) { body, error in if let error = error { self.notify(error) } else if let body = body { self.searchBook(body) } }
     }
-    func application(_ application: NSApplication, open urls: [URL]) { for url in urls where url.scheme == "listen" { if serviceURL == nil { pendingBook = url } else { handleBookURL(url) } } }
+    func application(_ application: NSApplication, open urls: [URL]) { for url in urls where url.scheme == L("listen") { if serviceURL == nil { pendingBook = url } else { handleBookURL(url) } } }
     func handleBookURL(_ url: URL) {
         guard url.host == "book", let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
         var payload = [String: Any](); for key in ["url", "title", "author"] { payload[key] = components.queryItems?.first(where: { $0.name == key })?.value ?? "" }
@@ -207,7 +215,7 @@ JSON.stringify({url, page_title, html});
             let view = WKWebView(frame: NSRect(x: 0, y: 0, width: 1000, height: 780), configuration: config)
             view.navigationDelegate = self; view.uiDelegate = self; grWeb = view
             grWindow = NSWindow(contentRect: view.frame, styleMask: [.titled,.closable,.miniaturizable,.resizable], backing: .buffered, defer: false)
-            grWindow?.title = "Goodreads · listen."; grWindow?.contentView = view; grWindow?.isReleasedWhenClosed = false; grWindow?.center()
+            grWindow?.title = L("Goodreads · listen."); grWindow?.contentView = view; grWindow?.isReleasedWhenClosed = false; grWindow?.center()
         }
         if show && lockOverlay == nil { grWindow?.makeKeyAndOrderFront(nil) }
         grTimer?.invalidate(); grTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in self.refreshNativeGoodreads() }
@@ -259,14 +267,14 @@ JSON.stringify({url, page_title, html});
         let overlay = NSVisualEffectView(frame: window.contentView!.bounds); overlay.material = .underWindowBackground; overlay.autoresizingMask = [.width, .height]
         let group = NSView(frame: NSRect(x: (overlay.bounds.width - 400) / 2, y: (overlay.bounds.height - 260) / 2, width: 400, height: 260)); group.autoresizingMask = [.minXMargin, .maxXMargin, .minYMargin, .maxYMargin]
         let icon = NSImageView(frame: NSRect(x: 160, y: 175, width: 80, height: 80)); icon.image = NSImage(named: NSImage.applicationIconName); group.addSubview(icon)
-        let title = NSTextField(labelWithString: "A little privacy for your shelf."); title.font = .systemFont(ofSize: 23, weight: .medium); title.alignment = .center; title.frame = NSRect(x: 0, y: 119, width: 400, height: 40); group.addSubview(title)
-        let subtitle = NSTextField(labelWithString: "Use Touch ID or your Mac password to return."); subtitle.textColor = .secondaryLabelColor; subtitle.alignment = .center; subtitle.frame = NSRect(x: 0, y: 88, width: 400, height: 24); group.addSubview(subtitle)
-        let button = NSButton(title: "Unlock listen.", target: self, action: #selector(unlockWindow)); button.bezelStyle = .rounded; button.frame = NSRect(x: 115, y: 25, width: 170, height: 38); group.addSubview(button)
+        let title = NSTextField(labelWithString: L("A little privacy for your shelf.")); title.font = .systemFont(ofSize: 23, weight: .medium); title.alignment = .center; title.maximumNumberOfLines = 2; title.frame = NSRect(x: 0, y: 110, width: 400, height: 58); group.addSubview(title)
+        let subtitle = NSTextField(labelWithString: L("Use Touch ID or your Mac password to return.")); subtitle.textColor = .secondaryLabelColor; subtitle.alignment = .center; subtitle.maximumNumberOfLines = 2; subtitle.frame = NSRect(x: 0, y: 65, width: 400, height: 42); group.addSubview(subtitle)
+        let button = NSButton(title: L("Unlock listen."), target: self, action: #selector(unlockWindow)); button.bezelStyle = .rounded; button.frame = NSRect(x: 115, y: 25, width: 170, height: 38); group.addSubview(button)
         overlay.addSubview(group); window.contentView!.addSubview(overlay); lockOverlay = overlay
     }
     @objc func unlockWindow() {
         let context = LAContext(); var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) { context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock your listen. window") { success, _ in DispatchQueue.main.async { if success { self.lockOverlay?.removeFromSuperview(); self.lockOverlay = nil; self.web.isHidden = false } } } }
+        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) { context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: L("Unlock your listen. window")) { success, _ in DispatchQueue.main.async { if success { self.lockOverlay?.removeFromSuperview(); self.lockOverlay = nil; self.web.isHidden = false } } } }
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
     func applicationWillTerminate(_ notification: Notification) { grTimer?.invalidate(); server?.terminate() }

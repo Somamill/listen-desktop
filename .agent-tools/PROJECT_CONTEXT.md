@@ -1,21 +1,9 @@
-# sovo. project context
+# listen-desktop project context
 
-## Product and identity
-The App Store edition is a native SwiftUI DRM-free audiobook player for iPhone, iPad and Mac Catalyst, named **sovo.**. The legacy desktop torrent catalogue is outside the Store binary. Preserve the historical io.github.somamill.listen.mobile identifiers, App Group, iCloud container, URL schemes and user data paths. GitHub Actions remain disabled. Native app architecture and tests live under ios/.
+Independent desktop audiobook discovery/search, torrent-client handoff and local library app. Not a dot. suite app or the native sovo. Store player. Preserve bundle ID io.github.somamill.listen, listen:// scheme, ~/Library/Application Support/listen and existing Keychain service IDs. Never reuse Somamill/listen: it redirects to Somamill/sovo.
 
-## Design sources
-Native design: ios/docs/DESIGN.md; current Store brief: app-store/marketing/BRIEF.md. Root DESIGN.md describes the legacy web edition. Sage/forest/cream, native system type and controls, whole covers and minimal chrome. Library combines Books / Genres / Authors / Narrators; You and Settings are the other tabs. Portraits require verified identity and licensed credits. No invented metadata or sleep detection.
+Source extraction: full Git history retained from 4273af7975c59c69fe2d15ee69000ccf3af48f91. Current native Store paths removed; previous commits remain source/license provenance. Ownership: listen_app/, native/, extras/, scripts/build_macos.py, desktop Python tests and dependencies. Native ios/, app-store/ and dot. branding belong to Somamill/sovo. Actions remain disabled.
 
-## Tools and evidence
-Use MobileBuildMCP/native Apple commands for builds/tests, Xcode MCP for relevant editor capabilities, and installed libimobiledevice/pymobiledevice3 over direct USB when CoreDevice is unavailable. Background APIs first; owner authorizes Chrome for Store submission. Never prompt for login-keychain passwords. Dedicated release signing credentials remain outside the repository and are locked after use. Playwright is for asset composition/web flows, not native validation. Impeccable/Hallmark principles apply to supported surfaces.
+Design: DESIGN.md and listen_app/static/css/tokens.css and brand.css. Local Flask/Waitress with authenticated loopback access, WebKit Mac wrapper. Background tests use isolated LISTEN_DATA_DIR; never user media/config. Build via scripts/build_macos.py on Mac. Genuine native/rendered evidence required; headless browser verifies web surface only. UI localization and independent fresh-clone/signing/update checks must be verified before claims.
 
-Build 11: 44 native logic tests passed; targeted native UI run passed (46 total including logic). iOS and Mac Release archives, isolated signing and Apple validation succeeded; both build 11 uploads processed VALID, not submitted. Physical iPhone build 11 installed; automatic Silk Roads metadata verified; long 34-MP3 conversion is still being verified. See ios/docs/INTEGRATION-QA.de.md and app-store/RELEASE-STATUS.md for completed results; these require reconciliation before release. Never infer Store submission from an archive/upload.
-
-## Localization and release gates
-The current UI is English; twelve-language baseline is not implemented or layout-reviewed. On 18 November 2026 the owner explicitly approved an exception for this already-running update (1.0.1/build 11), with twelve languages deferred to the following update. Do not advertise translated UI. The next user-facing update must inventory real UI/extensions/permissions and Store coverage, normal system/per-app language selection and Arabic RTL under managed LOCALIZATION.md/LANGUAGES.json.
-
-Before submission: finish physical conversion/playback, inspect current real native iPhone/iPad/Mac captures and whole-cover mini-player, reconcile metadata/privacy/reviewer instructions, current research and rights ledger, sign/validate uploads, verify selected builds and actual Review state. Live private Goodreads sign-in, two-device iCloud delivery and AirPods hardware behavior must not be claimed verified without fresh evidence. Preserve user originals and personal libraries; use cleared QA media in public assets.
-
-## Migration scope, 19 November 2026
-
-Reconcile release PR #10 with current main and brand PR #9 before separating native sovo. and standalone listen-desktop. Native identity remains sovo./dot.; desktop is independent. The owner now requests completed multilingual interfaces and independent builds; do not reuse the earlier build-11 language exception for a new release. Stable Apple identifiers/data paths must not change. Store publication remains conditional on actual checks, including long-conversion recovery.
+Current QA: 44 Python tests and rendered JS checks passed; native arm64 self-contained local QA ZIP/DMG built. Ten interface catalogs each include409 matching keys across static, native and dynamic text, with system preference negotiation, explicit selection and Arabic RTL. Provider websites and book metadata remain separate. Qualified linguistic review is not claimed. Developer ID/notarization unavailable; do not publish ad-hoc artifacts as production signed.

@@ -22,6 +22,9 @@ def create_app():
         threading.Thread(target=monitor,daemon=True).start()
     from .covers import covers
     app.register_blueprint(covers)
+    if os.environ.get('LISTEN_OWNER_PID') and not os.environ.get('LISTEN_DISABLE_UPDATE_CHECK'):
+        from .updates import background
+        threading.Thread(target=background,daemon=True).start()
     csrf=hmac.new(token.encode(),b'listen.form.csrf',hashlib.sha256).hexdigest()
     from .discovery import discovery
     from .goodreads_sync import sync
@@ -46,6 +49,20 @@ def create_app():
 
     @app.after_request
     def response_security(response):
+        if response.is_json:
+            data=response.get_json(silent=True)
+            if isinstance(data,dict):
+                from .i18n import translate
+                for key in ('error','message'):
+                    if isinstance(data.get(key),str):data[key]=translate(data[key])
+                for row in data.get('torrents',[]) if isinstance(data.get('torrents'),list) else []:
+                    if isinstance(row,dict) and isinstance(row.get('health'),dict):
+                        for key in ('label','detail'):
+                            if isinstance(row['health'].get(key),str):row['health'][key]=translate(row['health'][key])
+                for row in data.get('items',[]) if isinstance(data.get('items'),list) else []:
+                    if isinstance(row,dict) and isinstance(row.get('status'),str):row['status']=translate(row['status'])
+                response.set_data(app.json.dumps(data))
+
         if same_secret(request.headers.get('X-Listen-Token',''),token):
             response.set_cookie('listen_session',token,httponly=True,samesite='Strict',path='/')
         response.headers['X-Content-Type-Options']='nosniff'
@@ -55,6 +72,9 @@ def create_app():
         response.headers['Cache-Control']='no-store'
         return response
 
+    from .i18n import translate,locale,LANGUAGES,catalog as locale_catalog
+    @app.context_processor
+    def language_context():return {'_':translate,'ui_locale':locale(),'ui_languages':LANGUAGES,'ui_messages':locale_catalog(locale())}
     @app.context_processor
     def common():return {'config':settings.load(),'version':__version__,'csrf_token':csrf,'welcomed':bool(settings.read_json(root/'welcome.json',{}).get('dismissed'))}
 
@@ -156,23 +176,9 @@ def create_app():
 
     @app.get('/api/update')
     def check_update():
-        try:
-            import requests
-            from packaging.version import Version,InvalidVersion
-            response=requests.get('https://api.github.com/repos/Somamill/listen/releases',params={'per_page':10},headers={'Accept':'application/vnd.github+json'},timeout=10)
-            response.raise_for_status()
-            candidates=[]
-            for release in response.json():
-                if release.get('draft'):continue
-                url=release.get('html_url','')
-                if not url.startswith('https://github.com/Somamill/listen/releases/'):continue
-                try:candidates.append((Version(release.get('tag_name','').lstrip('v')),release))
-                except InvalidVersion:continue
-            if not candidates:return jsonify(current=__version__,available=False,message='No public release is available yet.')
-            version,release=max(candidates,key=lambda row:row[0])
-            return jsonify(current=__version__,latest=str(version),available=version>Version(__version__),url=release['html_url'],prerelease=bool(release.get('prerelease')),message='A newer release is available.' if version>Version(__version__) else 'You are using the latest published version.')
+        from .updates import check
+        try:return jsonify(check(force=request.args.get('cached') != '1'))
         except Exception:return jsonify(error='Could not check GitHub releases. Please try again later.'),503
-
     @app.post('/api/folder')
     def choose_folder():
         data=request.get_json(silent=True) or {};key=data.get('kind');path=data.get('path')

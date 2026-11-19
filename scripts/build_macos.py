@@ -16,12 +16,17 @@ def main():
     os.environ.pop('PYTHONPYCACHEPREFIX',None)
     os.environ.pop('PYTHONDONTWRITEBYTECODE',None)
     os.environ['PYTHONPATH']=str(ROOT)
-    run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--name','listen-server','--distpath',stage_root/'backend','--workpath',stage_root/'work','--specpath',stage_root,'--paths',ROOT,'--add-data',f'{ROOT}/listen_app/templates:listen_app/templates','--add-data',f'{ROOT}/listen_app/static:listen_app/static','--collect-submodules','keyring.backends','--copy-metadata','keyring','--copy-metadata','qbittorrent-api','--copy-metadata','transmission-rpc','--copy-metadata','deluge-web-client','listen_server.py'])
+    run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--name','listen-server','--distpath',stage_root/'backend','--workpath',stage_root/'work','--specpath',stage_root,'--paths',ROOT,'--add-data',f'{ROOT}/listen_app/templates:listen_app/templates','--add-data',f'{ROOT}/listen_app/static:listen_app/static','--add-data',f'{ROOT}/listen_app/locales:listen_app/locales','--collect-submodules','keyring.backends','--copy-metadata','keyring','--copy-metadata','qbittorrent-api','--copy-metadata','transmission-rpc','--copy-metadata','deluge-web-client','listen_server.py'])
     app=stage_root/'listen.app'
     if app.exists():shutil.rmtree(app)
     contents=app/'Contents';(contents/'MacOS').mkdir(parents=True);(contents/'Resources').mkdir()
     shutil.copytree(stage_root/'backend/listen-server',contents/'Resources/server',symlinks=True)
     shutil.copy2(ROOT/'native/AppIcon.icns',contents/'Resources/AppIcon.icns')
+    for source in (ROOT/'listen_app/locales').glob('*.json'):
+        locale = contents/'Resources'/(source.stem+'.lproj');locale.mkdir()
+        messages=json.loads(source.read_text())
+        (locale/'Localizable.strings').write_text(''.join(json.dumps(k,ensure_ascii=False)+' = '+json.dumps(v,ensure_ascii=False)+';\n' for k,v in messages.items()))
+
     for name in ['LICENSE','THIRD_PARTY_NOTICES.md']:
         if (ROOT/name).exists():shutil.copy2(ROOT/name,contents/'Resources'/name)
     from importlib.metadata import distributions
@@ -36,9 +41,9 @@ def main():
                     relative=Path(*[part for part in Path(str(entry)).parts if part not in ('.','..','/')])
                     target=licenses/name/relative;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
     if (ROOT/'docs/licenses').exists():shutil.copytree(ROOT/'docs/licenses',licenses/'python',dirs_exist_ok=True)
-    info={'CFBundleExecutable':'listen','CFBundleIdentifier':'io.github.somamill.listen','CFBundleName':'listen.','CFBundleDisplayName':'listen.','CFBundleVersion':VERSION,'CFBundleShortVersionString':VERSION,'CFBundlePackageType':'APPL','CFBundleIconFile':'AppIcon','LSMinimumSystemVersion':'13.0','NSHighResolutionCapable':True,'NSAppleEventsUsageDescription':'Read the Goodreads book or bookshelf page you choose in Safari to find audiobook editions and import your reading list. Passwords and cookies stay in Safari.','NSAppTransportSecurity':{'NSAllowsLocalNetworking':True},'CFBundleURLTypes':[{'CFBundleURLName':'listen. Goodreads book handoff','CFBundleURLSchemes':['listen'],'CFBundleTypeRole':'Viewer'}]}
+    info={'CFBundleExecutable':'listen','CFBundleIdentifier':'io.github.somamill.listen','CFBundleName':'listen.','CFBundleDisplayName':'listen.','CFBundleVersion':VERSION,'CFBundleShortVersionString':VERSION,'CFBundlePackageType':'APPL','CFBundleIconFile':'AppIcon','LSMinimumSystemVersion':'13.0','CFBundleDevelopmentRegion':'en','NSHighResolutionCapable':True,'NSAppleEventsUsageDescription':'Read the Goodreads book or bookshelf page you choose in Safari to find audiobook editions and import your reading list. Passwords and cookies stay in Safari.','NSAppTransportSecurity':{'NSAllowsLocalNetworking':True},'CFBundleURLTypes':[{'CFBundleURLName':'listen. Goodreads book handoff','CFBundleURLSchemes':['listen'],'CFBundleTypeRole':'Viewer'}]}
     (contents/'Info.plist').write_bytes(plistlib.dumps(info))
-    run(['swiftc','native/Listen.swift','-o',contents/'MacOS/listen','-framework','AppKit','-framework','WebKit','-framework','LocalAuthentication'])
+    run(['swiftc','-target',f'{arch}-apple-macosx13.0','native/Listen.swift','-o',contents/'MacOS/listen','-framework','AppKit','-framework','WebKit','-framework','LocalAuthentication'])
     ent=stage_root/'entitlements.plist';ent.write_bytes(plistlib.dumps({'com.apple.security.automation.apple-events':True}))
     # Remove Finder presentation metadata from generated build files only.
     # Preserve quarantine and all security-related attributes.

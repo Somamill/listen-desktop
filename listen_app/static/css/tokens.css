@@ -1,0 +1,30 @@
+/* Independent listen. semantic tokens; not a dot. suite dependency. */
+:root, [data-listen-theme="light"] {
+  --listen-background: #FAF8F4;
+  --listen-surface: #FFFFFF;
+  --listen-text: #242622;
+  --listen-secondaryText: #60645C;
+  --listen-border: #DADDD5;
+  --listen-accent-listen: #9B4526;
+  --listen-on-accent: #FFFFFF;
+  --listen-pressed-opacity: 1;
+  --listen-space-xs: 4px;
+  --listen-space-sm: 8px;
+  --listen-space-md: 12px;
+  --listen-space-lg: 16px;
+  --listen-space-xl: 24px;
+  --listen-space-xxl: 32px;
+  --listen-radius-control: 8px;
+  --listen-radius-card: 16px;
+  --listen-fastMs: 120ms;
+  --listen-normalMs: 200ms;
+}
+[data-listen-theme="dark"] {
+  --listen-background: #201A17;
+  --listen-surface: #2C2420;
+  --listen-text: #FFF4E7;
+  --listen-secondaryText: #C7B4A8;
+  --listen-border: #5B473B;
+  --listen-accent-listen: #E6AE85;
+  --listen-on-accent: #201A17;
+}
