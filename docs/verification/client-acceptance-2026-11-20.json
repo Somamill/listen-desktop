@@ -1,0 +1,32 @@
+{
+  "source_head": "e56a4c068e010959831e545e66753d4d00fa5721",
+  "test": "Real isolated Transmission add/status/remove through listen client adapter",
+  "production_data_touched": false,
+  "network_policy": "Per-process deny external outbound; allow localhost RPC only",
+  "keychain_accessed": false,
+  "external_egress_probe": "blocked by sandbox before connection",
+  "client_version": "transmission-daemon 4.1.4 (a6d907d9ea)",
+  "rpc_authentication": "required; unauthenticated request rejected401; real adapter authenticated",
+  "metadata_url": "https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso.torrent",
+  "metadata_sha256": "77a5c11d0255e53a639db920d4805400330a82a70e60e3ad4cda7784a274f329",
+  "metadata_bytes": 260182,
+  "add": "real listen clients.add succeeded",
+  "status": {
+    "count": 1,
+    "state": "stopped",
+    "progress": 0.0,
+    "download_speed": 0,
+    "upload_speed": 0,
+    "seeds": null,
+    "peers": 0
+  },
+  "remove": "removed only test torrent via same real RPC adapter client; list empty",
+  "downloads_directory_files": [],
+  "result": "PASS add/status/remove; NO peer download/PIA route assertion",
+  "owned_daemon_exit": 0,
+  "temporary_profile_and_credentials_removed": true,
+  "socket_check": "All observed daemon listeners and established RPC connections were127.0.0.1/::1; no external peer socket",
+  "authentication_source": "Random temporary password supplied only in acceptance process memory; real client adapter+RPC authentication, no Keychain access",
+  "remove_boundary": "Application has no generic delete endpoint: cleanup used real Transmission RPC client from listen clients._connect, integer torrent ID",
+  "qbittorrent_boundary": "Not started: production watchdog selects process name, not profile, and probes fixed port18080. No watchdog or PIA settings changed; no live qB/PIA/peer leak check claimed."
+}
