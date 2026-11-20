@@ -7,3 +7,5 @@ Use stable semantic tokens, visible keyboard focus, native window/titlebar and r
 ## Extraction audit decisions
 
 All component colors and font families are declared in local tokens; no shared suite runtime dependency. Functional small text was increased, labels keep normal casing, focus/disabled controls expose multiple visual channels, fields have a stronger border, and icons use one original line family. Warm paper/amber is deliberate listening identity. Legacy component spacing remains during this extraction: mechanically rounding every pre-existing dimension to a 4px grid would reshape otherwise working forms. The native window supports widths850px and up; 320px browser wrap warnings are outside the Mac window contract. Text measures are capped, and Arabic/German rendered checks remain mandatory. Hallmark spacing reflexes are recorded as retained-source exceptions, not passed checks.
+
+About listen. uses the standard macOS About panel, with localized creator and feedback text and links for email, project source, Max’s Reddit profile and optional Ko-fi support. The project keeps its independent listen. identity.

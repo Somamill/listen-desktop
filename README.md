@@ -1,8 +1,8 @@
 # listen.
 
-[![Issues: Open](https://img.shields.io/badge/Issues-Open-26374D?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Somamill/listen-desktop/issues) [![Reddit: Max on dot.](https://img.shields.io/badge/Reddit-Max%20on%20dot.-AD3000?style=for-the-badge&logo=reddit&logoColor=white)](https://www.reddit.com/user/dot-app/)
+[![Issues: Open](https://img.shields.io/badge/Issues-Open-26374D?style=flat&logo=github&logoColor=white)](https://github.com/Somamill/listen-desktop/issues) [![Reddit: Max on dot.](https://img.shields.io/badge/Reddit-Max%20on%20dot.-AD3000?style=flat&logo=reddit&logoColor=white)](https://www.reddit.com/user/dot-app/)
 
-[Issues](https://github.com/Somamill/listen-desktop/issues) | [Max on Reddit](https://www.reddit.com/user/dot-app/) | [Contact](#contact)
+[Issues](https://github.com/Somamill/listen-desktop/issues) | [Max on Reddit](https://www.reddit.com/user/dot-app/) | [Contact](#contact) | [Support Max on Ko-fi](https://ko-fi.com/somamill)
 
 Audiobook discovery, torrent-client handoff and a local library for macOS.
 

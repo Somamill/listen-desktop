@@ -424,5 +424,10 @@
   "Possible match · Ready to listen": "一致の可能性あり・再生可能",
   "Possible download match · {percent}%": "一致する可能性のあるダウンロード · {percent}%",
   "Imported the Goodreads shelf page open in Safari. Open another shelf page to add it.": "SafariのGoodreadsの本棚を読み込みました。別の本棚を開くと追加できます。",
-  "Sign in to Goodreads to refresh your shelves.": "本棚を更新するにはGoodreadsにログインしてください。"
+  "Sign in to Goodreads to refresh your shelves.": "本棚を更新するにはGoodreadsにログインしてください。",
+  "Made by Max": "Max が制作",
+  "Send feedback": "フィードバックを送る",
+  "Questions, ideas, and bug reports are welcome.": "ご質問、ご提案、不具合の報告を歓迎します。",
+  "Max on Reddit": "Reddit の Max",
+  "Support Max on Ko-fi": "Ko-fi で Max を支援"
 }
