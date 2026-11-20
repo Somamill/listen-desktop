@@ -61,3 +61,5 @@ GitHub Actions remain disabled. Build, test and signing automation is local; no 
 ## Contact
 
 Questions, ideas, or spotted a bug? [Email Max](mailto:max@miller-max.com). Feedback is always welcome.
+
+[Support Max on Ko-fi](https://ko-fi.com/somamill)
