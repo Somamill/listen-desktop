@@ -42,3 +42,7 @@ At source e56a4c068e010959831e545e66753d4d00fa5721, real Transmission4.1.4 ran w
 The installed qBittorrent5.2.3 supports isolated profiles, but its production watchdog selects `qbittorrent` by process name and checks a fixed API port. Starting a same-name temporary profile would enter that watchdog's scope. No watchdog or existing PIA configuration was altered; live qBittorrent downloads, PIA routing and leak checks remain unverified. The test did not start or download any torrent payload. Sanitized evidence: docs/verification/client-acceptance-2026-11-20.json.
 
 Official references: [qBittorrent command options](https://github.com/qbittorrent/qBittorrent/blob/master/doc/en/qbittorrent.1.md), [Transmission configuration](https://github.com/transmission/transmission/blob/main/docs/Editing-Configuration-Files.md), [Ubuntu permitted metadata](https://releases.ubuntu.com/24.04/ubuntu-24.04.4-live-server-amd64.iso.torrent).
+
+## 0.5.0 Credits release
+
+The Apple silicon DMG passed the bundled startup checks, Developer ID signature verification, Apple notarization, stapling and Gatekeeper. The packaged About panel exposed feedback email, GitHub, Reddit and Ko-fi. The public download is the notarized DMG on [GitHub Releases](https://github.com/Somamill/listen-desktop/releases/tag/v0.5.0). Intel support was not verified for this release.

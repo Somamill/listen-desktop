@@ -14,9 +14,9 @@ Audiobook discovery, torrent-client handoff and a local library for macOS.
 
 ## Install
 
-A Developer ID signed/notarized installer is not available yet. Do not treat the local QA builds as production-signed downloads. [Official releases](https://github.com/Somamill/listen-desktop/releases) are the only updater destination.
+[Download listen. for Apple silicon Macs](https://github.com/Somamill/listen-desktop/releases/tag/v0.5.0). The DMG is signed with Developer ID and notarized by Apple. Open it and drag listen. into Applications.
 
-For now, build the complete app on a Mac:
+To build the app from source on a Mac:
 
 ```sh
 git clone https://github.com/Somamill/listen-desktop.git
@@ -41,7 +41,7 @@ Only import or download content you are authorized to use. Catalog requests and 
 
 ## Current readiness
 
-The independent source and self-contained arm64 ZIP/DMG build work locally. Direct public distribution is blocked on legitimate Developer ID/notarization credentials. Ten interface catalogs include static screens, long-form guidance, dynamic status/errors and native menus. Interface language follows the supported system preferences or your selection, separately from audiobook filters. Arabic RTL and long-text layouts are checked below; provider website language remains controlled by that provider. See [release readiness](docs/RELEASE_READINESS.md).
+The independent source and self-contained arm64 ZIP/DMG build work locally. The Apple silicon DMG is signed and notarized for direct distribution. Ten interface catalogs include static screens, long-form guidance, dynamic status/errors and native menus. Interface language follows the supported system preferences or your selection, separately from audiobook filters. Arabic RTL and long-text layouts are checked below; provider website language remains controlled by that provider. See [release readiness](docs/RELEASE_READINESS.md).
 
 [Arabic RTL interface](docs/images/native-arabic.png) · [Extraction and one-time migration](docs/EXTRACTION.md)
 
