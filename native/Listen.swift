@@ -48,7 +48,8 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
     }
     func createMenu() {
         let menu = NSMenu(); let item = NSMenuItem(); menu.addItem(item); let appMenu = NSMenu()
-        appMenu.addItem(withTitle: L("About listen."), action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        let about = appMenu.addItem(withTitle: L("About listen."), action: #selector(showCredits), keyEquivalent: "")
+        about.target = self
         let update = NSMenuItem(title: L("Check for Updates…"), action: #selector(checkForUpdates), keyEquivalent: ""); update.target = self; appMenu.addItem(update)
         let lock = NSMenuItem(title: L("Lock Window"), action: #selector(lockWindow), keyEquivalent: "l"); lock.keyEquivalentModifierMask = [.control, .command]; lock.target = self; appMenu.addItem(lock)
         let settings = NSMenuItem(title: L("Settings…"), action: #selector(openSettings), keyEquivalent: ","); settings.target = self; appMenu.addItem(settings)
@@ -57,6 +58,14 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         for (title, action, key) in [(L("Undo"), "undo:", "z"), (L("Cut"), "cut:", "x"), (L("Copy"), "copy:", "c"), (L("Paste"), "paste:", "v"), (L("Select All"), "selectAll:", "a")] { editMenu.addItem(withTitle: title, action: Selector(action), keyEquivalent: key) }
         editItem.submenu = editMenu; menu.addItem(editItem); NSApp.mainMenu = menu
     }
+    @objc private func showCredits() {
+        let credits = NSAttributedString(
+            string: L("Send feedback"),
+            attributes: [.link: URL(string: "mailto:max@miller-max.com")!]
+        )
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+    }
+
     func startServer() {
         let executable = Bundle.main.resourceURL!.appendingPathComponent("server/listen-server")
         let process = Process(); process.executableURL = executable; process.currentDirectoryURL = root

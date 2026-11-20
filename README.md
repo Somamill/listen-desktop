@@ -53,3 +53,7 @@ uv pip install --python .venv/bin/python pytest
 The app wraps an authenticated loopback Flask/Waitress service in a native AppKit/WebKit window. Credentials use the macOS credential store. Fresh-install tests use an isolated data directory. See [architecture/setup](docs/DEVELOPMENT.md), [privacy](docs/PRIVACY.md), [source extraction and compatibility](docs/EXTRACTION.md), [support](https://github.com/Somamill/listen-desktop/issues) and [license](LICENSE).
 
 GitHub Actions remain disabled. Build, test and signing automation is local; no hosted checks or automated Store delivery are enabled.
+
+## Contact
+
+Questions, ideas, or spotted a bug? [Email Max](mailto:max@miller-max.com). Feedback is always welcome.
