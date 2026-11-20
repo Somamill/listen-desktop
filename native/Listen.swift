@@ -59,10 +59,16 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         editItem.submenu = editMenu; menu.addItem(editItem); NSApp.mainMenu = menu
     }
     @objc private func showCredits() {
-        let credits = NSAttributedString(
-            string: L("Send feedback"),
-            attributes: [.link: URL(string: "mailto:max@miller-max.com")!]
-        )
+        let credits = NSMutableAttributedString(string: L("Made by Max") + "\n" + L("Questions, ideas, and bug reports are welcome.") + "\n\n")
+        for (label, destination) in [
+            (L("Send feedback"), "mailto:max@miller-max.com"),
+            ("max@miller-max.com", "mailto:max@miller-max.com"),
+            ("GitHub", "https://github.com/Somamill/listen-desktop"),
+            (L("Max on Reddit"), "https://www.reddit.com/user/dot-app/"),
+            (L("Support Max on Ko-fi"), "https://ko-fi.com/somamill")
+        ] {
+            credits.append(NSAttributedString(string: label + "\n", attributes: [.link: URL(string: destination)!]))
+        }
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
 
