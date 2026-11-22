@@ -22,7 +22,7 @@ To build the app from source on a Mac:
 git clone https://github.com/Somamill/listen-desktop.git
 cd listen-desktop
 uv venv --python 3.13
-uv pip install --python .venv/bin/python -e '.[build]'
+uv pip sync --python .venv/bin/python requirements-macos-arm64.lock
 .venv/bin/python scripts/build_macos.py --dmg
 ```
 
@@ -41,7 +41,7 @@ Only import or download content you are authorized to use. Catalog requests and 
 
 ## Current readiness
 
-The independent source and self-contained arm64 ZIP/DMG build work locally. The Apple silicon DMG is signed and notarized for direct distribution. Ten interface catalogs include static screens, long-form guidance, dynamic status/errors and native menus. Interface language follows the supported system preferences or your selection, separately from audiobook filters. Arabic RTL and long-text layouts are checked below; provider website language remains controlled by that provider. See [release readiness](docs/RELEASE_READINESS.md).
+The independent source and self-contained arm64 ZIP/DMG build work locally. The Apple silicon DMG is signed and notarized for direct distribution. The app ships ten interface catalogs and matching native menu resources. The new developer-facing transfer diagnostics use English. Interface language follows the supported system preferences or your selection, separately from audiobook filters. Arabic RTL and long-text layouts are checked below; provider website language remains controlled by that provider. See [release readiness](docs/RELEASE_READINESS.md).
 
 [Arabic RTL interface](docs/images/native-arabic.png) · [Extraction and one-time migration](docs/EXTRACTION.md)
 
@@ -49,9 +49,9 @@ The independent source and self-contained arm64 ZIP/DMG build work locally. The 
 
 ```sh
 uv pip install --python .venv/bin/python pytest
+python3 .agent-tools/run.py requirements
 .venv/bin/python -m pytest tests -q
 .venv/bin/python scripts/check_frontend.py
-.venv/bin/python scripts/build_macos.py --dmg
 ```
 
 The app wraps an authenticated loopback Flask/Waitress service in a native AppKit/WebKit window. Credentials use the macOS credential store. Fresh-install tests use an isolated data directory. See [architecture/setup](docs/DEVELOPMENT.md), [privacy](docs/PRIVACY.md), [source extraction and compatibility](docs/EXTRACTION.md), [support](https://github.com/Somamill/listen-desktop/issues) and [license](LICENSE).

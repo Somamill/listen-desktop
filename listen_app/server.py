@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse,hashlib,hmac,threading,json,logging,os,secrets,time
+import argparse,hashlib,hmac,threading,json,logging,os,secrets,signal,time
 from urllib.parse import urlparse,urljoin
 from flask import Flask,request,render_template,jsonify
 from . import __version__,settings,catalog,clients
@@ -17,9 +17,12 @@ def create_app():
         with os.fdopen(fd,'w') as f:f.write(secrets.token_urlsafe(32))
     token=token_file.read_text().strip()
     app.config['SERVICE_TOKEN']=token;app.config['BOUND_PORT']=0
-    from .transfers import monitor
-    if not os.environ.get('LISTEN_DISABLE_TRANSFER_MONITOR'):
-        threading.Thread(target=monitor,daemon=True).start()
+    from . import transfers
+
+    @app.get('/api/transfers/status')
+    def transfer_status():
+        return jsonify(transfers.DIAGNOSTIC)
+
     from .covers import covers
     app.register_blueprint(covers)
     if os.environ.get('LISTEN_OWNER_PID') and not os.environ.get('LISTEN_DISABLE_UPDATE_CHECK'):
@@ -171,6 +174,7 @@ def create_app():
         if request.method=='GET':return jsonify(settings.load())
         try:
             result=settings.save(request.get_json(silent=True))
+            transfers.WAKE.set()
             return jsonify(ok=True,settings=result)
         except ValueError as exc:return jsonify(error=str(exc)),400
 
@@ -219,18 +223,42 @@ def main():
     service=create_server(app,host='127.0.0.1',port=args.port,threads=6)
     port=int(service.effective_port);app.config['BOUND_PORT']=port
     settings.atomic_json(settings.data_dir()/'connection.json',{'port':port,'pid':os.getpid(),'owner_pid':int(os.environ.get('LISTEN_OWNER_PID','0')),'token':app.config['SERVICE_TOKEN'],'version':__version__})
-    owner=int(os.environ.get('LISTEN_OWNER_PID','0'))
+    from . import transfers
+    stop = threading.Event()
+    worker = None
+
+    def interrupt(_signal, _frame):
+        stop.set()
+        transfers.WAKE.set()
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, interrupt)
+    signal.signal(signal.SIGINT, interrupt)
+    if not os.environ.get('LISTEN_DISABLE_TRANSFER_MONITOR'):
+        worker = threading.Thread(target=transfers.monitor, args=(stop,), daemon=True)
+        worker.start()
+    owner = int(os.environ.get('LISTEN_OWNER_PID', '0'))
     if owner:
         def watch_owner():
-            while True:
-                time.sleep(2)
-                try:os.kill(owner,0)
-                except ProcessLookupError:os._exit(0)
-                except PermissionError:pass
-        threading.Thread(target=watch_owner,daemon=True).start()
+            while not stop.wait(2):
+                try:
+                    os.kill(owner, 0)
+                except ProcessLookupError:
+                    os.kill(os.getpid(), signal.SIGTERM)
+                    return
+                except PermissionError:
+                    pass
+        threading.Thread(target=watch_owner, daemon=True).start()
     logging.getLogger('waitress').setLevel(logging.ERROR)
-    try:service.run()
+    try:
+        service.run()
+    except KeyboardInterrupt:
+        pass
     finally:
+        stop.set()
+        transfers.WAKE.set()
+        if worker is not None:
+            worker.join(timeout=1)
         path=settings.data_dir()/'connection.json'
         if path.exists():path.unlink()
 

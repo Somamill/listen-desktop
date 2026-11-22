@@ -39,6 +39,7 @@ def main():
         print('Verified optional existing shared checkout; no helper executed.')
     else:
         print('Shared source access is optional; upstream checkout not rechecked.')
+    subprocess.run(['python3', str(root.parent / 'check-instructions.py')], check=True)
     print('Verified independent desktop requirements and neutral shared tooling at ' + revision)
     print('No executable download, service installation, queue job, signing or brand membership change.')
 

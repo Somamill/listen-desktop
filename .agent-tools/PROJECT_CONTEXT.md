@@ -19,3 +19,5 @@ Shared technical tooling is referenced at Somamill/mac-development-tools commit 
 The independent desktop app adopts the shared README presentation guidance and owner contact destinations. Its native About panel includes creator, feedback email, source, Max’s Reddit and Ko-fi. Direct macOS distribution and Apple Store delivery remain separate from sovo.
 
 Direct release 0.5.0 supersedes the earlier signing blocker. Existing team Developer ID credentials signed the app and arm64 DMG through the non-graphical runner. Apple notarization, stapling and Gatekeeper passed. Distribute the notarized DMG through the independent GitHub release.
+
+Transfer cleanup now uses a cancellable idle event, serial completion, adaptive backoff and an authenticated redacted status endpoint. Pending jobs retain their on-disk format and are not cleared on temporary omissions, provider failures or shutdown. The independent instruction validator is part of the local requirements check. See [the transfer and packaging receipt](../docs/verification/transfer-monitor.md). This work does not change the signed 0.5.0 public release.
