@@ -54,7 +54,7 @@ def transfer(relative,config=None):
     destination_root=Path(cfg['completed_folder']).resolve()
     if not destination_root.is_dir():raise clients.ClientError('The library folder is unavailable. Check iCloud Drive or your selected destination.')
     target=destination_root/source.name
-    if target.exists():raise clients.ClientError('An item with this name already exists in your library. Nothing was overwritten.')
+    if target.exists() or target.is_symlink():raise clients.ClientError('An item with this name already exists in your library. Nothing was overwritten.')
     if source==destination_root or source in destination_root.parents:raise clients.ClientError('Choose a library folder outside this download.')
     rows=clients.torrents(cfg)
     linked=associations(source,rows)

@@ -24,7 +24,7 @@ def _connect(config):
         return Client(host=u.hostname,port=port,protocol=u.scheme,path=u.path if u.path not in ('','/') else '/transmission/rpc',username=c['username'] or None,password=pw or None,timeout=8)
     if c['type']=='deluge':
         from deluge_web_client import DelugeWebClient
-        d=DelugeWebClient(url=c['url'],password=pw);d.login();return d
+        d=DelugeWebClient(url=c['url'],password=pw);d.login(timeout=8);return d
     return None
 
 _START_LOCK=threading.Lock()
@@ -176,7 +176,7 @@ def move_completed(torrent_id,config=None):
         if source.resolve()==root.resolve() or source.resolve() in root.resolve().parents:
             raise ClientError('Choose a library folder outside this download.')
         target=root/source.name
-        if target.exists():raise ClientError('An item with this name already exists in your library. Nothing was overwritten.')
+        if target.exists() or target.is_symlink():raise ClientError('An item with this name already exists in your library. Nothing was overwritten.')
     if is_local(cfg):
         from . import transfers
         try:transfers.record(torrent_id,cfg,source,target)
