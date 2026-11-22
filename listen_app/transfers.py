@@ -125,6 +125,14 @@ def remove_empty_source(job):
         parent = parent.parent
 
 
+def valid_job(job):
+    return (isinstance(job, dict)
+            and all(isinstance(job.get(field), str) for field in
+                    ('client', 'url', 'source', 'target', 'folder', 'downloads'))
+            and isinstance(job.get('files'), dict) and bool(job['files'])
+            and all(type(size) is int and size >= 0 for size in job['files'].values()))
+
+
 def finish_pending(cfg=None, stop=None):
     from . import clients
     with FINISH_LOCK:
@@ -132,18 +140,21 @@ def finish_pending(cfg=None, stop=None):
         if not jobs or (stop and stop.is_set()):
             return 'idle', len(jobs)
         cfg = cfg or settings.load()
-        matching = {key: job for key, job in jobs.items()
+        valid = {key: job for key, job in jobs.items() if valid_job(job)}
+        matching = {key: job for key, job in valid.items()
                     if job['client'] == cfg['client']['type'] and job['url'] == cfg['client']['url']}
+        issues = set()
+        if len(valid) != len(jobs):
+            issues.add('journal_error')
         if not clients.is_local(cfg) or not matching:
-            return 'configuration_changed', len(jobs)
+            return ('journal_error' if issues else 'configuration_changed'), len(jobs)
         try:
             rows = {str(row['id']): row for row in clients.torrents(cfg)}
         except Exception:
             return 'client_unavailable', len(jobs)
 
-        issues = set()
         remaining = len(jobs)
-        if len(matching) != remaining:
+        if len(matching) != len(valid):
             issues.add('configuration_changed')
         for key, job in matching.items():
             if stop and stop.is_set():
@@ -163,7 +174,11 @@ def finish_pending(cfg=None, stop=None):
                 ):
                     issues.add('moving')
                     continue
-                if not verified(job):
+                try:
+                    ready = verified(job)
+                except (OSError, RuntimeError, ValueError):
+                    ready = False
+                if not ready:
                     issues.add('verification_pending')
                     continue
                 if stop and stop.is_set():
@@ -195,7 +210,7 @@ def finish_pending(cfg=None, stop=None):
                 remove_empty_source(job)
             except OSError:
                 pass
-        for state in ('cleanup_failed', 'client_error', 'configuration_changed', 'missing',
+        for state in ('journal_error', 'cleanup_failed', 'client_error', 'configuration_changed', 'missing',
                       'verification_pending', 'moving'):
             if state in issues:
                 return state, remaining

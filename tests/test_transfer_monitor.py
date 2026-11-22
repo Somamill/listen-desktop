@@ -204,3 +204,15 @@ def test_deluge_rejecting_cleanup_keeps_the_job(transfer):
     rpc.execute_call.return_value.result = False
     assert transfers.finish_pending(cfg) == ('cleanup_failed', 1)
     assert (target / 'chapter.m4b').is_file() and 'one' in transfers.pending()
+
+
+def test_malformed_job_does_not_block_another_verified_move(transfer):
+    cfg, source, target, rows, rpc = transfer
+    transfers.record('one', cfg, source, target)
+    settings.atomic_json(transfers.journal(), {**transfers.pending(), 'damaged': None})
+    source.rename(target)
+    rows.return_value = [complete_row(target)]
+    assert transfers.finish_pending(cfg) == ('journal_error', 1)
+    assert transfers.pending() == {'damaged': None}
+    assert (target / 'chapter.m4b').read_bytes() == b'recording'
+    rpc.torrents_delete.assert_called_once_with(torrent_hashes='one', delete_files=False)
