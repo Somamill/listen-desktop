@@ -10,6 +10,16 @@ The UI uses local semantic tokens in listen_app/static/css/tokens.css and brand.
 
 Shared technical tooling is referenced at Somamill/mac-development-tools commit b0d92d21f6e2b19ab8480a63b5027d012719b0a1. It is an optional private reference, not a public build dependency or product membership. The shared repo owns serial validation/artifact helpers; listen-desktop owns build/sign/notarize/release and keeps secrets outside any queue. `python3 .agent-tools/run.py requirements` verifies local independent requirements; optional `--shared-checkout /path/to/mac-development-tools` verifies the reviewed helper hashes without running them. No service or job is installed.
 
+## Standalone torrent engine
+
+On Apple silicon with macOS 15 or later, install both committed lock files in a CPython 3.13 build environment and run `python scripts/build_macos.py --embedded-engine --dmg`. The separate engine build includes libtorrent 2.1.3 and runs without a qBittorrent installation. The regular macOS 13 build remains available. Settings → Torrent client → Built-in torrent engine requires an explicit `socks5://IP:port`. Set the SOCKS username and password if required. The password uses the existing macOS credential store. The app does not copy external qBittorrent preferences and opting in does not change them.
+
+The engine runs under a macOS process network policy. Its worker can only connect over TCP to its own loopback relay, which forwards to the configured numeric SOCKS5 endpoint. No direct peer or tracker path is permitted by that policy. The app also requests proxy hostname resolution and disables DHT, PEX, local discovery, incoming peers, UPnP/NAT-PMP and uTP. Hostname resolution depends on your proxy, and a provider outage or rejected authentication blocks new downloads and resumes. The guard applies to torrent traffic only. Use a trusted provider and verify its egress independently.
+
+The built-in client accepts magnet links with HTTP(S) trackers. UDP-only and DHT-only links are unsupported. Jobs persist in a local journal and can be paused, resumed and removed without deleting files. For a completed download, remove it from Downloads while keeping its files, then use Local library to transfer it. External client integration retains its existing automatic transfer path.
+
+The existing updater matches stable GitHub assets to the installed architecture and engine variant. Standalone assets use `-embedded` in their filename. Settings offers the exact matching installer and its release notes. Background checks use a 24-hour cache. Opening or navigating the UI only reads that cache, so it never starts a network request on its own. Manual checking refreshes the result and never installs the update.
+
 ## Transfer monitoring and locked builds
 
 The service owns one transfer worker. It waits indefinitely with no jobs, rechecks immediately after enrolment, and applies bounded backoff when the provider is moving a torrent or the job needs attention. The authenticated loopback endpoint `GET /api/transfers/status` reports a fixed state code, pending count, next retry (Unix seconds), and an English action when applicable. It omits raw provider errors, paths, credentials and torrent identifiers. See [transfer monitor verification](verification/transfer-monitor.md).

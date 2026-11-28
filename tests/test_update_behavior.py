@@ -11,12 +11,13 @@ def test_stable_architecture_cache_manual_and_offline(tmp_path, monkeypatch):
     monkeypatch.setenv('LISTEN_DATA_DIR', str(tmp_path))
     monkeypatch.setenv('LISTEN_DISABLE_UPDATE_CHECK', '1')
     monkeypatch.setattr(updates, 'ARCH', 'arm64')
+    monkeypatch.setattr(updates, 'flavor', lambda: 'standard')
     base = 'https://github.com/Somamill/listen-desktop/releases'
 
     def release(version, arch='arm64', **flags):
         return dict(tag_name=f'v{version}', html_url=f'{base}/tag/v{version}',
                     assets=[dict(name=f'listen-{version}-macOS-{arch}.dmg', size=42,
-                                 browser_download_url=f'{base}/download/v{version}/artifact')], **flags)
+                                 browser_download_url=f'{base}/download/v{version}/listen-{version}-macOS-{arch}.dmg')], **flags)
 
     response = Mock(content=b'[]')
     response.json.return_value = [release('99.0', 'x86_64'), release('98.0', draft=True),

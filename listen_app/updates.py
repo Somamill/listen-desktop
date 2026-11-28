@@ -5,19 +5,36 @@ import threading
 import time
 import platform
 from packaging.version import Version, InvalidVersion
+from urllib.parse import quote
 import requests
-from . import __version__, settings
+from . import __version__, embedded, settings
 
 REPOSITORY = 'Somamill/listen-desktop'
 LOCK = threading.Lock()
 ARCH = 'arm64' if platform.machine() == 'arm64' else 'x86_64'
 
+def flavor():
+    return 'embedded' if embedded.available() else 'standard'
+
+def cached():
+    saved = settings.read_json(settings.data_dir() / 'update-check.json', {})
+    if not isinstance(saved, dict):
+        return None
+    checked_at = saved.get('checked_at')
+    if (saved.get('current') == __version__ and saved.get('arch') == ARCH
+        and saved.get('flavor') == flavor() and type(checked_at) in (int, float)
+        and 0 <= time.time() - checked_at < 86400):
+        return saved
+    return None
+
 def check(force=False):
     path = settings.data_dir() / 'update-check.json'
     with LOCK:
-        saved = settings.read_json(path, {})
-        if not force and isinstance(saved, dict) and saved.get('current') == __version__ and 0 <= time.time()-saved.get('checked_at', 0) < 86400:
+        saved = None if force else cached()
+        if saved is not None:
             return saved
+        build_flavor = flavor()
+        suffix = '-embedded' if build_flavor == 'embedded' else ''
         response = requests.get('https://api.github.com/repos/'+REPOSITORY+'/releases', params={'per_page': 20},
             headers={'Accept': 'application/vnd.github+json', 'User-Agent': 'listen-desktop/'+__version__}, timeout=8, allow_redirects=False)
         response.raise_for_status()
@@ -30,27 +47,40 @@ def check(force=False):
         for release in rows:
             if not isinstance(release, dict) or release.get('draft') or release.get('prerelease'):
                 continue
-            url = release.get('html_url', '')
-            if not isinstance(url, str) or not url.startswith('https://github.com/'+REPOSITORY+'/releases/tag/'):
+            tag = release.get('tag_name')
+            if not isinstance(tag, str):
                 continue
             try:
-                version = Version(release.get('tag_name', '').removeprefix('v'))
-            except (InvalidVersion, TypeError, AttributeError):
+                version = Version(tag.removeprefix('v'))
+            except InvalidVersion:
                 continue
-            expected = {'listen-'+str(version)+'-macOS-'+ARCH+ext for ext in ('.zip','.dmg')}
-            assets = release.get('assets', [])
-            compatible = isinstance(assets,list) and any(isinstance(asset,dict)
-                and asset.get('name') in expected and type(asset.get('size')) is int and 0<asset['size']<4_000_000_000
-                and isinstance(asset.get('browser_download_url'),str)
-                and asset['browser_download_url'].startswith('https://github.com/'+REPOSITORY+'/releases/download/')
-                for asset in assets)
-            if not version.is_prerelease and compatible:
-                choices.append((version, url))
-        result = {'current': __version__, 'available': False, 'checked_at': time.time(), 'message': 'No public release is available yet.'}
+            if version.is_prerelease or version.is_devrelease:
+                continue
+            release_base = 'https://github.com/' + REPOSITORY + '/releases/'
+            tag_path = quote(tag, safe='')
+            url = release_base + 'tag/' + tag_path
+            if release.get('html_url') != url:
+                continue
+            name = f'listen-{version}-macOS-{ARCH}{suffix}'
+            assets = release.get('assets')
+            if not isinstance(assets, list):
+                continue
+            for extension in ('.dmg', '.zip'):
+                filename = name + extension
+                download = release_base + 'download/' + tag_path + '/' + filename
+                if any(isinstance(asset, dict) and asset.get('name') == filename
+                       and type(asset.get('size')) is int and 0 < asset['size'] < 4_000_000_000
+                       and asset.get('browser_download_url') == download for asset in assets):
+                    choices.append((version, url, filename, download))
+                    break
+        result = {'current': __version__, 'arch': ARCH, 'flavor': build_flavor, 'available': False,
+                  'checked_at': time.time(), 'message': 'No public release is available yet.'}
         if choices:
-            version, url = max(choices)
-            result.update(latest=str(version), available=version > Version(__version__), url=url,
-                message='A newer release is available.' if version > Version(__version__) else 'You are using the latest published version.')
+            version, url, filename, download = max(choices)
+            newer = version > Version(__version__)
+            result.update(latest=str(version), available=newer, url=url,
+                          asset=filename, download_url=download,
+                          message='A newer release is available.' if newer else 'You are using the latest published version.')
         settings.atomic_json(path, result)
         return result
 

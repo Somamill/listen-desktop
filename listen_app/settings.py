@@ -57,15 +57,21 @@ def validate(payload):
     if host not in ('audiobookbay.lu','audiobookbay.is'):raise ValueError('Choose a documented catalog host.')
     cfg['catalog_host']=host
     client=cfg['client']
-    if not isinstance(client,dict) or client.get('type') not in ('qbittorrent','transmission','deluge','magnet'):raise ValueError('Choose a torrent client.')
+    if not isinstance(client,dict) or client.get('type') not in ('qbittorrent','transmission','deluge','magnet','embedded'):raise ValueError('Choose a torrent client.')
     client={k:str(client.get(k,DEFAULTS['client'][k])).strip()[:500] for k in DEFAULTS['client']}
-    if client['type']!='magnet':
+    if client['type']=='embedded':
+        from .embedded import endpoint
+        try:
+            endpoint(client['url'])
+        except ValueError as exc:
+            raise ValueError('Enter a SOCKS5 URL with an IPv4 address and port, without credentials.') from exc
+    elif client['type']!='magnet':
         try:
             u=urlparse(client['url']);port=u.port
         except ValueError:raise ValueError('Use a valid client URL and port.')
         if u.scheme not in ('http','https') or not u.hostname or u.username or u.password or u.query or u.fragment or (port is not None and not 1<=port<=65535):raise ValueError('Use a client URL without embedded credentials.')
     cfg['client']=client
-    remote=client['type']!='magnet' and urlparse(client['url']).hostname not in ('localhost','127.0.0.1','::1')
+    remote=client['type'] not in ('magnet','embedded') and urlparse(client['url']).hostname not in ('localhost','127.0.0.1','::1')
     for key in ('downloads_folder','completed_folder'):
         val=str(cfg[key]).strip()
         if val and (not (Path(val).is_absolute() or (remote and PureWindowsPath(val).is_absolute())) or '\x00' in val):raise ValueError('Choose an absolute destination folder.')
@@ -82,6 +88,7 @@ def get_password(config=None):
     except keyring.errors.KeyringError:return ''
 
 def save(payload):
+    previous=load()['client']
     cfg=validate(payload)
     password=payload.get('password')
     if password is not None:
@@ -93,4 +100,7 @@ def save(payload):
                 except keyring.errors.PasswordDeleteError:pass
         except keyring.errors.KeyringError as exc:raise ValueError('The system credential store is unavailable. Settings were not saved.') from exc
     atomic_json(data_dir()/'settings.json',cfg)
+    if previous['type']=='embedded' and (previous!=cfg['client'] or password is not None):
+        from .embedded import reset
+        reset()
     return cfg

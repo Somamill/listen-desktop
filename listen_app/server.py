@@ -167,7 +167,23 @@ def create_app():
         except clients.ClientError as exc:return jsonify(connected=False,message=str(exc),count=0,client=settings.load()['client']['type'])
 
     @app.get('/settings')
-    def settings_page():return render_template('settings.html')
+    def settings_page():
+        from .embedded import available
+        return render_template('settings.html',embedded_available=available())
+    @app.post('/api/embedded/control')
+    def control_embedded():
+        from .embedded import command,EngineError
+        data=request.get_json(silent=True) or {}
+        action=data.get('action')
+        key=data.get('id')
+        if action not in ('pause','resume','remove') or not isinstance(key,str):
+            return jsonify(error='Choose a valid download action.'),400
+        try:
+            command(settings.load(),'remove' if action=='remove' else 'pause',key=key,
+                    **({} if action=='remove' else {'paused':action=='pause'}))
+        except EngineError as exc:
+            return jsonify(error=str(exc)),400
+        return jsonify(ok=True)
 
     @app.route('/api/settings',methods=['GET','POST'])
     def api_settings():
@@ -180,8 +196,11 @@ def create_app():
 
     @app.get('/api/update')
     def check_update():
-        from .updates import check
-        try:return jsonify(check(force=request.args.get('cached') != '1'))
+        from .updates import cached,check
+        try:
+            if request.args.get('cached')=='1':
+                return jsonify(cached() or {'available':False})
+            return jsonify(check(force=True))
         except Exception:return jsonify(error='Could not check GitHub releases. Please try again later.'),503
     @app.post('/api/folder')
     def choose_folder():

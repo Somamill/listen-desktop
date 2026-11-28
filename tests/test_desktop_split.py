@@ -16,12 +16,13 @@ def test_current_tree_has_no_store_binary_inputs():
     assert 'Somamill/listen-desktop' in updates.REPOSITORY
 
 
-def test_update_rejects_native_repo_and_prereleases():
+@patch.object(updates,'flavor',return_value='standard')
+def test_update_rejects_native_repo_and_prereleases(_flavor):
     response=Mock(content=b'[]')
     response.json.return_value=[
       {'tag_name':'v90','html_url':'https://github.com/Somamill/sovo/releases/tag/v90'},
       {'tag_name':'v80b1','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v80b1','prerelease':True},
-      {'tag_name':'v1.0.0','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v1.0.0','assets':[{'name':'listen-1.0.0-macOS-'+updates.ARCH+'.zip','size':1,'browser_download_url':'https://github.com/Somamill/listen-desktop/releases/download/v1.0.0/file.zip'}]}]
+      {'tag_name':'v1.0.0','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v1.0.0','assets':[{'name':'listen-1.0.0-macOS-'+updates.ARCH+'.zip','size':1,'browser_download_url':'https://github.com/Somamill/listen-desktop/releases/download/v1.0.0/listen-1.0.0-macOS-'+updates.ARCH+'.zip'}]}]
     with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,LISTEN_DATA_DIR=folder),patch('requests.get',return_value=response) as fetch:
       result=updates.check(force=True)
       assert result['latest']=='1.0.0'
@@ -101,3 +102,50 @@ def test_open_library_missing_cover_is_not_a_blank_placeholder():
     from urllib.parse import urlparse,parse_qs
     for url in ['https://covers.openlibrary.org/b/id/123-L.jpg','https://covers.openlibrary.org/b/id/123-L.jpg?default=true']:
       assert parse_qs(urlparse(safe_url(url)).query)['default']==['false']
+
+
+def test_update_matches_build_variant_cache_and_exact_asset(tmp_path, monkeypatch):
+    import requests
+
+    def release(version, variants):
+        tag = f'v{version}'
+        base = f'https://github.com/{updates.REPOSITORY}/releases'
+        assets = []
+        for arch, suffix, extension in variants:
+            name = f'listen-{version}-macOS-{arch}{suffix}.{extension}'
+            assets.append({'name': name, 'size': 19, 'browser_download_url': f'{base}/download/{tag}/{name}'})
+        return {'tag_name': tag, 'html_url': f'{base}/tag/{tag}', 'assets': assets}
+
+    monkeypatch.setenv('LISTEN_DATA_DIR', str(tmp_path))
+    monkeypatch.setattr(updates, 'ARCH', 'arm64')
+    current_flavor = 'standard'
+    monkeypatch.setattr(updates, 'flavor', lambda: current_flavor)
+    wrong_url = release('6.0.0', [('arm64', '-embedded', 'dmg')])
+    wrong_url['assets'][0]['browser_download_url'] += '.unrelated'
+    rows = [
+        wrong_url,
+        release('5.0.0', [('arm64', '', 'dmg'), ('x86_64', '-embedded', 'dmg')]),
+        release('4.0.0', [('arm64', '-embedded', 'zip'), ('arm64', '-embedded', 'dmg')]),
+    ]
+    response = Mock(content=b'[]')
+    response.json.return_value = rows
+    app = create_app()
+    app.config['BOUND_PORT'] = 58432
+    client = app.test_client()
+    options = {'base_url': 'http://127.0.0.1:58432', 'headers': {'X-Listen-Token': app.config['SERVICE_TOKEN']}}
+    with patch('requests.get', return_value=response) as fetch:
+        assert client.get('/api/update?cached=1', **options).json == {'available': False}
+        fetch.assert_not_called()
+        assert updates.check()['latest'] == '5.0.0'
+        current_flavor = 'embedded'
+        assert client.get('/api/update?cached=1', **options).json == {'available': False}
+        update = updates.check()
+        assert update['asset'] == 'listen-4.0.0-macOS-arm64-embedded.dmg'
+        assert update['download_url'].endswith('/v4.0.0/' + update['asset'])
+        assert fetch.call_count == 2
+        assert client.get('/api/update?cached=1', **options).json == update
+        assert fetch.call_count == 2
+        fetch.side_effect = requests.ConnectionError('offline')
+        assert client.get('/api/update', **options).status_code == 503
+        assert client.get('/api/update?cached=1', **options).json == update
+        assert fetch.call_count == 3
