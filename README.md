@@ -1,6 +1,6 @@
 # listen.
 
-<img src="listen_app/static/images/app-icon.png" width="96" alt="listen. steel-blue sound aperture icon">
+<img src="listen_app/static/images/app-icon.png" width="96" alt="listen. steel-blue waveform icon">
 
 [![Issues: Open](https://img.shields.io/badge/Issues-Open-26374D?style=flat&logo=github&logoColor=white)](https://github.com/Somamill/listen-desktop/issues) [![Reddit: Max on dot.](https://img.shields.io/badge/Reddit-Max%20on%20dot.-AD3000?style=flat&logo=reddit&logoColor=white)](https://www.reddit.com/user/dot-app/)
 

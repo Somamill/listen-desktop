@@ -28,6 +28,10 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
         try? FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        if let url = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+           let icon = NSImage(contentsOf: url) {
+            NSApp.applicationIconImage = icon
+        }
         createMenu()
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 820), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.title = L("listen."); window.titlebarAppearsTransparent = true; window.delegate = self; window.minSize = NSSize(width: 850, height: 640)
