@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1
+
+- Use the same steel-blue waveform artwork for the Mac application icon and browser surfaces.
+- Display the metadata state once and show an unknown torrent size clearly while waiting for peers.
+
 ## 0.6.0
 
 - Introduced a slate-blue Liquid Glass interface and waveform icon for the Mac.
