@@ -23,9 +23,14 @@ def sign_bundle(app,entitlements,identity,keychain=None):
     sign(app,entitlements)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--dmg',action='store_true');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--dmg',action='store_true');parser.add_argument('--embedded-engine',action='store_true');args=parser.parse_args()
     if sys.platform!='darwin':raise SystemExit('Build the native app on macOS.')
-    os.chdir(ROOT);os.environ.setdefault('MACOSX_DEPLOYMENT_TARGET','13.0')
+    min_os=15 if args.embedded_engine else 13
+    if args.embedded_engine:
+        import libtorrent
+        if not libtorrent.version.startswith('2.1.3.'):
+            raise SystemExit('Install the pinned embedded-engine dependency before packaging.')
+    os.chdir(ROOT);os.environ.setdefault('MACOSX_DEPLOYMENT_TARGET',f'{min_os}.0')
     arch='arm64' if platform.machine()=='arm64' else 'x86_64'
     dist=ROOT/'dist';dist.mkdir(exist_ok=True)
     stage_root=Path(tempfile.mkdtemp(prefix='listen-build-'))
@@ -33,7 +38,8 @@ def main():
     os.environ.pop('PYTHONPYCACHEPREFIX',None)
     os.environ.pop('PYTHONDONTWRITEBYTECODE',None)
     os.environ['PYTHONPATH']=str(ROOT)
-    run([sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--name','listen-server','--distpath',stage_root/'backend','--workpath',stage_root/'work','--specpath',stage_root,'--paths',ROOT,'--add-data',f'{ROOT}/listen_app/templates:listen_app/templates','--add-data',f'{ROOT}/listen_app/static:listen_app/static','--add-data',f'{ROOT}/listen_app/locales:listen_app/locales','--collect-submodules','keyring.backends','--copy-metadata','keyring','--copy-metadata','qbittorrent-api','--copy-metadata','transmission-rpc','--copy-metadata','deluge-web-client','listen_server.py'])
+    engine_options=['--collect-binaries','libtorrent'] if args.embedded_engine else ['--exclude-module','libtorrent']
+    run([sys.executable,'-m','PyInstaller',*engine_options,'--noconfirm','--clean','--onedir','--name','listen-server','--distpath',stage_root/'backend','--workpath',stage_root/'work','--specpath',stage_root,'--paths',ROOT,'--add-data',f'{ROOT}/listen_app/templates:listen_app/templates','--add-data',f'{ROOT}/listen_app/static:listen_app/static','--add-data',f'{ROOT}/listen_app/locales:listen_app/locales','--collect-submodules','keyring.backends','--copy-metadata','keyring','--copy-metadata','qbittorrent-api','--copy-metadata','transmission-rpc','--copy-metadata','deluge-web-client','listen_server.py'])
     app=stage_root/'listen.app'
     if app.exists():shutil.rmtree(app)
     contents=app/'Contents';(contents/'MacOS').mkdir(parents=True);(contents/'Resources').mkdir()
@@ -58,9 +64,9 @@ def main():
                     relative=Path(*[part for part in Path(str(entry)).parts if part not in ('.','..','/')])
                     target=licenses/name/relative;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,target)
     if (ROOT/'docs/licenses').exists():shutil.copytree(ROOT/'docs/licenses',licenses/'python',dirs_exist_ok=True)
-    info={'CFBundleExecutable':'listen','CFBundleIdentifier':'io.github.somamill.listen','CFBundleName':'listen.','CFBundleDisplayName':'listen.','CFBundleVersion':VERSION,'CFBundleShortVersionString':VERSION,'CFBundlePackageType':'APPL','CFBundleIconFile':'AppIcon','LSMinimumSystemVersion':'13.0','CFBundleDevelopmentRegion':'en','NSHighResolutionCapable':True,'NSAppleEventsUsageDescription':'Read the Goodreads book or bookshelf page you choose in Safari to find audiobook editions and import your reading list. Passwords and cookies stay in Safari.','NSAppTransportSecurity':{'NSAllowsLocalNetworking':True},'CFBundleURLTypes':[{'CFBundleURLName':'listen. Goodreads book handoff','CFBundleURLSchemes':['listen'],'CFBundleTypeRole':'Viewer'}]}
+    info={'CFBundleExecutable':'listen','CFBundleIdentifier':'io.github.somamill.listen','CFBundleName':'listen.','CFBundleDisplayName':'listen.','CFBundleVersion':VERSION,'CFBundleShortVersionString':VERSION,'CFBundlePackageType':'APPL','CFBundleIconFile':'AppIcon','LSMinimumSystemVersion':f'{min_os}.0','CFBundleDevelopmentRegion':'en','NSHighResolutionCapable':True,'NSAppleEventsUsageDescription':'Read the Goodreads book or bookshelf page you choose in Safari to find audiobook editions and import your reading list. Passwords and cookies stay in Safari.','NSAppTransportSecurity':{'NSAllowsLocalNetworking':True},'CFBundleURLTypes':[{'CFBundleURLName':'listen. Goodreads book handoff','CFBundleURLSchemes':['listen'],'CFBundleTypeRole':'Viewer'}]}
     (contents/'Info.plist').write_bytes(plistlib.dumps(info))
-    run(['swiftc','-target',f'{arch}-apple-macosx13.0','native/Listen.swift','-o',contents/'MacOS/listen','-framework','AppKit','-framework','WebKit','-framework','LocalAuthentication'])
+    run(['swiftc','-target',f'{arch}-apple-macosx{min_os}.0','native/Listen.swift','-o',contents/'MacOS/listen','-framework','AppKit','-framework','WebKit','-framework','LocalAuthentication'])
     ent=stage_root/'entitlements.plist';ent.write_bytes(plistlib.dumps({'com.apple.security.automation.apple-events':True}))
     # Remove Finder presentation metadata from generated build files only.
     # Preserve quarantine and all security-related attributes.
@@ -79,7 +85,7 @@ def main():
         for image in MachO(str(binary)).headers:
             for command,body,_ in image.commands:
                 minimum=getattr(body,'minos',0) if command.cmd==0x32 else getattr(body,'version',0) if command.cmd==0x24 else 0
-                if minimum>13<<16:raise RuntimeError('Bundled binary requires a newer macOS than 13: '+str(binary.relative_to(app)))
+                if minimum>min_os<<16:raise RuntimeError(f'Bundled binary requires a newer macOS than {min_os}: '+str(binary.relative_to(app)))
     print('Bundled native dependency minimum-OS check passed.')
 
     # Reject stale frozen bytecode before publishing a package.
@@ -127,7 +133,8 @@ def main():
             except ProcessLookupError:pass
             process.wait(timeout=5)
     print('Bundled fresh-install pages, neutral defaults, startup, launcher identity, and authentication checks passed.')
-    archive=dist/f'listen-{VERSION}-macOS-{arch}.zip';run(['ditto','-c','-k','--sequesterRsrc','--keepParent',app,archive])
+    flavor='-embedded' if args.embedded_engine else ''
+    archive=dist/f'listen-{VERSION}-macOS-{arch}{flavor}.zip';run(['ditto','-c','-k','--sequesterRsrc','--keepParent',app,archive])
     artifacts=[archive]
     if args.dmg:
         stage=stage_root/'dmg';stage.mkdir(parents=True,exist_ok=True)
@@ -136,10 +143,10 @@ def main():
         shutil.copytree(app,target,symlinks=True)
         link=stage/'Applications'
         if not link.exists():link.symlink_to('/Applications')
-        dmg=dist/f'listen-{VERSION}-macOS-{arch}.dmg'
+        dmg=dist/f'listen-{VERSION}-macOS-{arch}{flavor}.dmg'
         if dmg.exists():dmg.unlink()
         run(['hdiutil','create','-volname','listen.','-srcfolder',stage,'-ov','-format','UDZO',dmg]);artifacts.append(dmg)
-    (dist/f'SHA256SUMS-{arch}.txt').write_text(''.join(hashlib.sha256(a.read_bytes()).hexdigest()+'  '+a.name+'\n' for a in artifacts))
+    (dist/f'SHA256SUMS-{arch}{flavor}.txt').write_text(''.join(hashlib.sha256(a.read_bytes()).hexdigest()+'  '+a.name+'\n' for a in artifacts))
     (ROOT/'build').mkdir(exist_ok=True);(ROOT/'build/app-path.txt').write_text(str(app))
     print('App bundle:',app)
     print('Built:',*[str(a) for a in artifacts],sep='\n')

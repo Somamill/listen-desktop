@@ -35,6 +35,13 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         material.material = .underWindowBackground; material.blendingMode = .behindWindow; material.autoresizingMask = [.width, .height]
         window.contentView!.addSubview(material)
         let configuration = WKWebViewConfiguration(); configuration.userContentController.add(self, name: "listen")
+        configuration.userContentController.addUserScript(WKUserScript(
+            source: reduceTransparencyScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true
+        ))
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(updateDisplayOptions(_:)),
+            name: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification, object: nil
+        )
         web = WKWebView(frame: window.contentView!.bounds, configuration: configuration)
         web.setValue(false, forKey: "drawsBackground"); web.autoresizingMask = [.width, .height]; web.uiDelegate = self; web.navigationDelegate = self
         window.contentView!.addSubview(web); applyAppearance(); window.center(); window.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
@@ -111,6 +118,16 @@ final class ListenDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, W
         }.resume()
     }
     func notify(_ message: String) { web.callAsyncJavaScript("if(typeof notify==='function')notify(message);", arguments: ["message": message], in: nil, in: .page, completionHandler: nil) }
+    private var reduceTransparencyScript: String {
+        let reduced = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        return "document.documentElement.dataset.nativeReduceTransparency = '\(reduced)'"
+    }
+    @objc private func updateDisplayOptions(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.web.evaluateJavaScript(self.reduceTransparencyScript, completionHandler: nil)
+        }
+    }
     func applyAppearance() {
         let theme = preferences()["theme"] as? String ?? "system"
         NSApp.appearance = theme == "dark" ? NSAppearance(named: .darkAqua) : theme == "light" ? NSAppearance(named: .aqua) : nil

@@ -16,6 +16,16 @@ Shared technical tooling is referenced at Somamill/mac-development-tools commit 
 
 2026-11-20 live acceptance: isolated installed Transmission4.1.4 real add/status/remove passes through listen's adapter/RPC with official Ubuntu metadata, stopped/no payload, required temporary auth, loopback listeners and process-level deny-external-egress sandbox. Temporary daemon/profile/credentials cleaned. qB5.2.3 remains unstarted because production watchdog targets process name/fixedAPIport regardless of profile; PIA/download/leak validation remains unverified. Evidence docs/verification/client-acceptance-2026-11-20.json. No production settings/data, Keychain, phone or signing changes.
 
+## Desktop appearance
+
+The sound-aperture mark is rendered by `scripts/make_icon.swift` for the sidebar, browser and AppKit bundle icon. The independent listen. palette and shared layout treatment live in `listen_app/static/css/refresh.css`. Verify all five rendered routes and the embedded native resources when changing these assets.
+
+The optional standalone engine uses libtorrent 2.1.3 in a separate process with a macOS network policy, a single TCP-only SOCKS5 relay, and no direct fallback. Packaging requires the arm64 optional lock file and macOS 15. Keep authenticated tracker/peer transfer and blocked-proxy tests before distributing engine builds. External client behavior and default magnet handoff remain separate.
+
+Updater checks distinguish the standard and standalone-engine packages by the installed build, even if the user currently uses an external client. The UI reads the cache on navigation and links the exact compatible official asset after a manual check.
+
+The Liquid Glass shell uses translucent navigation, search and dialogs over opaque operational surfaces. Verify both appearances, reduced transparency and narrow RTL layout with isolated data before repeating package captures.
+
 The independent desktop app adopts the shared README presentation guidance and owner contact destinations. Its native About panel includes creator, feedback email, source, Max’s Reddit and Ko-fi. Direct macOS distribution and Apple Store delivery remain separate from sovo.
 
 Direct release 0.5.0 supersedes the earlier signing blocker. Existing team Developer ID credentials signed the app and arm64 DMG through the non-graphical runner. Apple notarization, stapling and Gatekeeper passed. Distribute the notarized DMG through the independent GitHub release.

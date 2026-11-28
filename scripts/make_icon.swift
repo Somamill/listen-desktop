@@ -1,11 +1,35 @@
 import AppKit
-let image=NSImage(size:NSSize(width:1024,height:1024)); image.lockFocus()
-let rect=NSRect(x:70,y:70,width:884,height:884)
-let tile=NSBezierPath(roundedRect:rect,xRadius:210,yRadius:210)
-NSGradient(colors:[NSColor(calibratedWhite:0.97,alpha:1),NSColor(calibratedRed:0.94,green:0.66,blue:0.42,alpha:1)])!.draw(in:tile,angle:-65)
-NSColor.white.withAlphaComponent(0.8).setStroke();tile.lineWidth=4;tile.stroke()
-let disk=NSBezierPath(ovalIn:NSRect(x:276,y:276,width:472,height:472))
-let ink=NSColor(calibratedRed:0.29,green:0.13,blue:0.08,alpha:1)
-NSGraphicsContext.saveGraphicsState();NSBezierPath(rect:NSRect(x:250,y:250,width:524,height:262)).addClip();ink.setFill();disk.fill();NSGraphicsContext.restoreGraphicsState()
-ink.setStroke();disk.lineWidth=34;disk.stroke()
-image.unlockFocus();let data=NSBitmapImageRep(data:image.tiffRepresentation!)!.representation(using:.png,properties:[:])!;try! data.write(to:URL(fileURLWithPath:CommandLine.arguments[1]))
+
+let size = 1024
+let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size,
+                              bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                              colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+NSGraphicsContext.current?.imageInterpolation = .high
+
+func ink(_ hex: UInt32) -> NSColor {
+    NSColor(srgbRed: CGFloat(hex >> 16 & 255) / 255, green: CGFloat(hex >> 8 & 255) / 255,
+            blue: CGFloat(hex & 255) / 255, alpha: 1)
+}
+
+let tile = NSBezierPath(roundedRect: NSRect(x: 64, y: 64, width: 896, height: 896),
+                        xRadius: 203, yRadius: 203)
+NSGradient(colors: [ink(0x6C8295), ink(0x293B4C), ink(0x16232F)])!.draw(in: tile, angle: -58)
+ink(0xD9ECFC).withAlphaComponent(0.55).setStroke()
+tile.lineWidth = 5
+tile.stroke()
+
+let aperture = NSBezierPath(ovalIn: NSRect(x: 235, y: 235, width: 554, height: 554))
+NSGradient(starting: ink(0x213446), ending: ink(0x536C82))!.draw(in: aperture, angle: -52)
+ink(0xBCD3E9).withAlphaComponent(0.52).setStroke()
+aperture.lineWidth = 8
+aperture.stroke()
+
+for (index, height) in [116, 218, 310, 218, 116].enumerated() {
+    let bar = NSBezierPath(roundedRect: NSRect(x: 337 + 75 * index, y: 512 - height / 2,
+                                               width: 50, height: height), xRadius: 25, yRadius: 25)
+    NSGradient(starting: ink(0xEEF7FC), ending: ink(0xBDD7ED))!.draw(in: bar, angle: -90)
+}
+
+let png = bitmap.representation(using: .png, properties: [:])!
+try png.write(to: URL(fileURLWithPath: CommandLine.arguments[1]))

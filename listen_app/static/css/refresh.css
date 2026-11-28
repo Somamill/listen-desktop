@@ -1,0 +1,255 @@
+/* Hallmark: Liquid Glass desktop redesign; glass navigation over a restrained blue-gray workspace. */
+/* Critique: the active route and search action remain clear at the minimum native width. */
+/* Independent listen. desktop palette, mapped to semantic interface roles. */
+:root {
+  --canvas: #e9eef3;
+  --panel: #f9fbfd;
+  --sidebar-panel: #f2f7fce0;
+  --text-strong: #162330;
+  --text-quiet: #4b5c6c;
+  --hairline: #b5c5d488;
+  --control-line: #71879a;
+  --selection: #d6e4f1;
+  --accent-strong: #284b68;
+  --action-text: #f6fbff;
+  --focus: #285877;
+  --quiet-shadow: 0 6px 24px #172d4010;
+  --sidebar-width: 212px;
+  --chrome-gap: 12px;
+  --glass-edge: #ffffffdb;
+  --glass-panel: #f6faffd6;
+  --glass-highlight: #ffffff9e;
+  --light-field: #ccdfefbb;
+  --glass-shadow: 0 8px 18px #1c385522, inset 0 1px var(--glass-edge);
+  --glass-filter: blur(24px) saturate(1.4);
+  --control-face: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --control-radius: 10px;
+  --panel-radius: 16px;
+}
+
+html[data-mode="dark"] {
+  --canvas: #131b23;
+  --panel: #1c2833;
+  --sidebar-panel: #202c37de;
+  --text-strong: #edf4fa;
+  --text-quiet: #b2c3d1;
+  --hairline: #5f778b72;
+  --control-line: #829bb1;
+  --selection: #324a60;
+  --accent-strong: #b9d9f2;
+  --action-text: #172e40;
+  --focus: #bee5ff;
+  --quiet-shadow: 0 6px 22px #060e1833;
+  --glass-edge: #c7e6ff32;
+  --glass-panel: #223343d9;
+  --glass-highlight: #9dccf018;
+  --light-field: #334d648e;
+  --glass-shadow: 0 8px 18px #070e2080, inset 0 1px var(--glass-edge);
+}
+
+html,
+body { overflow-x: clip; }
+
+html[data-mode] body {
+  background: radial-gradient(ellipse at 0 0, var(--light-field), transparent 58%), var(--canvas);
+  color: var(--text-strong);
+  font-family: var(--control-face);
+}
+
+html[data-mode] {
+  --ink: var(--text-strong);
+  --muted: var(--text-quiet);
+  --line: var(--hairline);
+  --listen-accent-listen: var(--accent-strong);
+  --listen-text: var(--text-strong);
+  --listen-secondaryText: var(--text-quiet);
+  --listen-control-border: var(--control-line);
+  --listen-on-accent: var(--action-text);
+}
+
+html[data-mode] .sidebar {
+  inset: var(--chrome-gap) auto var(--chrome-gap) var(--chrome-gap);
+  width: var(--sidebar-width);
+  background: linear-gradient(135deg, var(--glass-highlight), transparent 63%), var(--sidebar-panel);
+  border: 1px solid var(--glass-edge);
+  border-radius: 20px;
+  padding: var(--space-4);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+}
+
+html[dir="rtl"][data-mode] .sidebar { inset: var(--chrome-gap) var(--chrome-gap) var(--chrome-gap) auto; }
+
+html[data-mode] main {
+  margin: 0;
+  margin-inline-start: calc(var(--sidebar-width) + var(--chrome-gap));
+  padding-inline: var(--space-12);
+  padding-block-end: var(--space-12);
+  max-width: 1512px;
+}
+
+.sidebar .brand { gap: 12px; margin-block-end: var(--space-8); }
+.sidebar .brand img { inline-size: 40px; block-size: 40px; border-radius: 12px; box-shadow: none; }
+.sidebar .wordmark { color: var(--text-strong); font: 650 26px/1 var(--control-face); letter-spacing: -.04em; }
+.sidebar nav { display: grid; gap: 4px; }
+html[data-mode] .sidebar nav a {
+  min-block-size: 42px;
+  min-inline-size: 0;
+  white-space: normal;
+  border-radius: var(--control-radius);
+  border: 1px solid transparent;
+  color: var(--text-quiet);
+}
+html[dir="rtl"][data-mode] .sidebar nav a { flex-direction: row; }
+.sidebar nav a :is(svg, span) { flex: none; }
+html[data-mode] .sidebar nav a:hover,
+html[data-mode] .sidebar nav a[aria-current="page"] {
+  background: var(--selection);
+  color: var(--text-strong);
+}
+html[data-mode] .sidebar nav a[aria-current="page"] {
+  border-color: var(--glass-edge);
+  font-weight: 650;
+  box-shadow: inset 0 1px var(--glass-edge);
+}
+
+html[data-mode] .topbar {
+  height: 52px;
+  border: 0;
+  justify-content: flex-end;
+}
+html[data-mode] .theme-switch {
+  color: var(--accent-strong);
+  background: var(--glass-panel);
+  border: 1px solid var(--glass-edge);
+  border-radius: 100px;
+  box-shadow: var(--glass-shadow);
+  inline-size: 40px;
+  block-size: 36px;
+}
+
+.hero, .discovery-hero, .downloads-header { padding-block-start: var(--space-8); }
+.hero h1, .discovery-hero h1, .downloads-header h1 {
+  margin-block: 0 12px;
+  color: var(--text-strong);
+  font: 650 clamp(30px, 4vw, 44px)/1.08 var(--control-face);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.hero + .results { margin-block-start: var(--space-8); }
+.discovery-hero { grid-template-columns: minmax(0, 1fr) minmax(216px, .68fr); gap: var(--space-8); }
+
+html[data-mode] .glass,
+html[data-mode] dialog {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--quiet-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-mode] .search-form,
+html[data-mode] .settings-save,
+html[data-mode] dialog {
+  background: linear-gradient(135deg, var(--glass-highlight), transparent 72%), var(--glass-panel);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+}
+html[data-mode] .search-form { margin-block-start: var(--space-6); border-radius: 18px; }
+html[data-mode] .primary,
+html[data-mode] .secondary { min-block-size: 36px; }
+html[data-mode] .settings-card h2, html[data-mode] .results-heading h2,
+html[data-mode] .empty-editorial h2, html[data-mode] .empty-download h2,
+html[data-mode] .health-explainer h2, html[data-mode] dialog h2 {
+  color: var(--text-strong);
+  font: 630 19px/1.25 var(--control-face);
+}
+html[data-mode] .settings-row select { color: var(--text-strong); border-color: var(--control-line); }
+html[data-mode] .catalog-filter-note { color: var(--text-quiet); background: var(--glass-panel); border-color: var(--hairline); }
+
+html[data-mode] .settings-card { margin-block-end: var(--space-4); }
+html[data-mode] .settings-card-heading > span { color: var(--accent-strong); }
+html[data-mode] .settings-card-heading,
+html[data-mode] .settings-row,
+html[data-mode] .download-item { border-color: var(--hairline); }
+
+html[data-mode] .primary {
+  border-radius: var(--control-radius);
+  background: var(--accent-strong);
+  color: var(--action-text);
+  box-shadow: none;
+  font-size: 13px;
+  transition: filter 120ms ease-out;
+}
+html[data-mode] .primary:not(:disabled):hover { filter: brightness(.91); }
+html[data-mode] .primary:not(:disabled):active { filter: brightness(.84); }
+html[data-mode] .secondary,
+html[data-mode] .settings-input { border-color: var(--control-line); }
+
+html[data-mode] :focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+html[data-mode] .search-form:focus-within { outline: 2px solid var(--focus); outline-offset: 3px; }
+.search-form :focus-visible { outline-offset: 0; }
+
+@media (max-width: 960px) {
+  :root { --sidebar-width: 176px; }
+  html[data-mode] main { padding-inline: var(--space-6); }
+  .discovery-hero { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+}
+
+@media (max-width: 710px) {
+  html[data-mode] .sidebar { position: static; width: auto; margin: var(--chrome-gap); }
+  .sidebar .brand { margin-block-end: 12px; }
+  .sidebar nav { display: flex; flex-wrap: wrap; }
+  .sidebar-bottom { margin-block-start: 12px; }
+  html[data-mode] main { margin-inline-start: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-mode] .primary, .book-card, .discovery-book { transition: none; }
+}
+
+
+html[data-mode] .search-form input[name="query"] {
+  color: var(--text-strong);
+  border: 0;
+  padding-inline: var(--space-4);
+}
+
+html[data-mode] .search-form input[name="query"]::placeholder { color: var(--text-quiet); }
+.search-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--chrome-gap);
+  margin-block-start: var(--chrome-gap);
+}
+html[data-mode] .search-tools > * {
+  color: var(--text-quiet);
+  margin: 0;
+}
+
+html[data-native-reduce-transparency="true"][data-mode] {
+  --sidebar-panel: var(--panel);
+  --glass-panel: var(--panel);
+  --glass-highlight: transparent;
+  --glass-filter: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-mode] {
+    --sidebar-panel: var(--panel);
+    --glass-panel: var(--panel);
+    --glass-highlight: transparent;
+    --glass-filter: none;
+  }
+}

@@ -307,7 +307,8 @@ class ListenTests(unittest.TestCase):
         item.unlink();(cloud/item.name).unlink()
     def test_downloads_never_auto_send_to_library(self):
         with self.assertRaises(clients.ClientError):clients.add('magnet:?xt=urn:btih:'+'a'*40,'Book','completed',self.cfg)
-    def test_update_check_uses_official_releases(self):
+    @patch('listen_app.updates.flavor',return_value='standard')
+    def test_update_check_uses_official_releases(self,_flavor):
         response=Mock();response.content=b'[]';response.json.return_value=[{'tag_name':'v1.0.0','html_url':'https://github.com/Somamill/listen-desktop/releases/tag/v1.0.0','draft':False,'prerelease':False,'assets':[{'name':'listen-1.0.0-macOS-arm64.zip','size':1,'browser_download_url':'https://github.com/Somamill/listen-desktop/releases/download/v1.0.0/listen-1.0.0-macOS-arm64.zip'},{'name':'listen-1.0.0-macOS-x86_64.zip','size':1,'browser_download_url':'https://github.com/Somamill/listen-desktop/releases/download/v1.0.0/listen-1.0.0-macOS-x86_64.zip'}]}]
         with patch('requests.get',return_value=response) as fetch:
             result=self.get('/api/update');self.assertTrue(result.json['available']);self.assertEqual(result.json['current'],__version__);self.assertEqual(fetch.call_args.args[0],'https://api.github.com/repos/Somamill/listen-desktop/releases')

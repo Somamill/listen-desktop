@@ -1,5 +1,7 @@
 # listen.
 
+<img src="listen_app/static/images/app-icon.png" width="96" alt="listen. steel-blue sound aperture icon">
+
 [![Issues: Open](https://img.shields.io/badge/Issues-Open-26374D?style=flat&logo=github&logoColor=white)](https://github.com/Somamill/listen-desktop/issues) [![Reddit: Max on dot.](https://img.shields.io/badge/Reddit-Max%20on%20dot.-AD3000?style=flat&logo=reddit&logoColor=white)](https://www.reddit.com/user/dot-app/)
 
 [Issues](https://github.com/Somamill/listen-desktop/issues) | [Max on Reddit](https://www.reddit.com/user/dot-app/) | [Contact](#contact) | [Support Max on Ko-fi](https://ko-fi.com/somamill)
@@ -8,13 +10,13 @@ Audiobook discovery, torrent-client handoff and a local library for macOS.
 
 **Independent from [sovo.](https://github.com/Somamill/sovo), the native Apple audiobook player.** listen. does not install, replace or use sovo.’s library.
 
-![The independent listen. Mac app settings](docs/images/native-settings.png)
+![Liquid Glass listen. Settings in light mode](docs/images/desktop-refresh-settings.png)
 
-*Actual native Mac window, version0.5.0. English and Arabic interfaces share the same controls.*
+*Settings from the packaged Mac app, rendered with isolated data.*
 
 ## Install
 
-[Download listen. for Apple silicon Macs](https://github.com/Somamill/listen-desktop/releases/tag/v0.5.0). The DMG is signed with Developer ID and notarized by Apple. Open it and drag listen. into Applications.
+[Download listen. for Apple silicon Macs](https://github.com/Somamill/listen-desktop/releases/latest). The DMG is signed with Developer ID and notarized by Apple. Open it and drag listen. into Applications. Choose the standard build for macOS 13 or later, or the standalone build for the protected built-in engine on macOS 15 or later.
 
 To build the app from source on a Mac:
 
@@ -43,7 +45,7 @@ Only import or download content you are authorized to use. Catalog requests and 
 
 The independent source and self-contained arm64 ZIP/DMG build work locally. The Apple silicon DMG is signed and notarized for direct distribution. The app ships ten interface catalogs and matching native menu resources. The new developer-facing transfer diagnostics use English. Interface language follows the supported system preferences or your selection, separately from audiobook filters. Arabic RTL and long-text layouts are checked below; provider website language remains controlled by that provider. See [release readiness](docs/RELEASE_READINESS.md).
 
-[Arabic RTL interface](docs/images/native-arabic.png) · [Extraction and one-time migration](docs/EXTRACTION.md)
+[Arabic RTL interface](docs/images/desktop-refresh-arabic.png) · [Extraction and one-time migration](docs/EXTRACTION.md)
 
 ## Develop and verify
 
@@ -57,6 +59,10 @@ python3 .agent-tools/run.py requirements
 The app wraps an authenticated loopback Flask/Waitress service in a native AppKit/WebKit window. Credentials use the macOS credential store. Fresh-install tests use an isolated data directory. See [architecture/setup](docs/DEVELOPMENT.md), [privacy](docs/PRIVACY.md), [source extraction and compatibility](docs/EXTRACTION.md), [support](https://github.com/Somamill/listen-desktop/issues) and [license](LICENSE).
 
 GitHub Actions remain disabled. Build, test and signing automation is local; no hosted checks or automated Store delivery are enabled.
+
+### Standalone downloads on Apple silicon
+
+Build with `--embedded-engine` to include [libtorrent](https://www.libtorrent.org/). This optional macOS 15+ build runs torrents without another client. Select the built-in engine in Settings and configure your SOCKS5 endpoint. See [standalone engine setup and limits](docs/DEVELOPMENT.md#standalone-torrent-engine).
 
 ## Contact
 

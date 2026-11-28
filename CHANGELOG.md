@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- Introduced a slate-blue Liquid Glass interface and waveform icon for the Mac.
+- Added the optional standalone BitTorrent engine with a proxy-only macOS network guard.
+- Update checks select the exact installer for the installed build variant.
+- Downloads show an unknown size until torrent metadata supplies one.
+
 ## 0.5.0 — independent desktop candidate
 
 - Extract the desktop application from reconciled source 4273af7, retaining source history, MIT license and dependency notices. Native Apple Store app continues in Somamill/sovo; old /listen remains its redirect.
